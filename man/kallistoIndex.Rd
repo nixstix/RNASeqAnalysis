@@ -18,7 +18,7 @@ An index file which can be used to quantify expression data using
   \code{\link{kallistoQuant}} pseudoalignment
 }
 \description{
-DESCRIPTION GOES HERES. Kallisto must be installed locally in order for this function to work. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}
+DESCRIPTION GOES HERES. Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}
 }
 \examples{
 kallistoIndex("./transcripts.fasta")
