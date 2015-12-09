@@ -2,7 +2,7 @@
 % Please edit documentation in R/kallisto.R
 \name{availableReferences}
 \alias{availableReferences}
-\title{A number of transcriptome references have already been built, or use with \code{kallistoQuant}}
+\title{A number of transcriptome references have already been built, for use with \code{kallistoQuant}}
 \usage{
 availableReferences()
 }

@@ -8,17 +8,17 @@ kallistoIndex(refTranscriptome, indexName = "./transcripts.idx")
 }
 \arguments{
 \item{refTranscriptome}{A character string of the transcriptome file (in
-fasta format) to be indexed}
+fasta format) to be indexed.}
 
 \item{indexName}{A character string of the output index file to be created.
-Default is "./transcripts.idx")}
+Default is "./transcripts.idx").}
 }
 \value{
 An index file which can be used to quantify expression data using
-  \code{\link{kallistoQuant}} pseudoalignment
+  \code{\link{kallistoQuant}} pseudoalignment.
 }
 \description{
-DESCRIPTION GOES HERES. Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}
+DESCRIPTION GOES HERES. Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}.
 }
 \examples{
 kallistoIndex("./transcripts.fasta")
@@ -26,6 +26,6 @@ kallistoIndex("./transcripts.fa.gz", "./index.idx")
  
 }
 \seealso{
-\url{http://pachterlab.github.io/kallisto/} for more about Kallisto
+\url{http://pachterlab.github.io/kallisto/} for more about Kallisto.
 }
 
