@@ -232,6 +232,8 @@ PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)
         return(dfStats)
 }
 
+# work on stats to be returned
+
 # private function
 openStream <- function(file){
         stream <- FastqStreamer(file, readerBlockSize = 2e7,n=2e7)
