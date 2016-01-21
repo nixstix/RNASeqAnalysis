@@ -10,10 +10,10 @@ availableReferences()
 \item{None}{No parameters}
 }
 \value{
-A list of available transcriptomes (.idx files)
+A list of available transcriptome indices (.idx files)
 }
 \description{
-DESCRIPTION GOES HERE
+A number of transcriptome index files (.idx files) have been pre-built and provided with the package. These files may be used as input to the \code{kallsitoQuant} pseudoalignment function (or the user may provide his/her own transcriptome file). The \code{availableReferences} function provides a list of these ready-available transcriptomes.
 }
 \examples{
 availableReferences()
