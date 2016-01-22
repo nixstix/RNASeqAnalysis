@@ -18,7 +18,9 @@ availableReferences <- function(){
 
 #' Builds a transcriptome index (.idx) from a FASTA-formatted transcriptome.
 #' 
-#' \code{kallistoIndex} builds an index of  Once built, the transcriptome index may be used for pseudoalignment of the target RNA-Seq data in order to quantify expression (see \code{kallistoQuant}). Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}.
+#' \code{kallistoIndex} builds an index of the transcriptome. Once built, the transcriptome index (in the form of a De Bruijn graph) may be used for pseudoalignment of the target RNA-Seq data in order to quantify expression (see \code{kallistoQuant}). 
+#' A transcriptome De Bruijn graph (T-DBG) is constructed from k-mers in the transcriptome, where each k-mer in the transcriptome is a node in the T-DBG. Each transcript is represented by a different colour, and whenever a node appears in a transcript, it is given the colour of that transcript. MORE. 
+#' Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}.
 #' @param refTranscriptome A character string of the transcriptome file (in
 #'   fasta format) to be indexed.
 #' @param indexName A character string of the output index file to be created.
@@ -39,58 +41,42 @@ kallistoIndex <- function(refTranscriptome, indexName="./transcripts.idx"){
 
 #Quantifies transcript expression
 #'
-#'DESCRIPTION GOES HERE
-#'
-#' @param file1 A character string of the name of the (fastq.gz) file to be processed.
-#' @param file2 A character string of the name of the second (fastq.gz) file to be processed. This is used in the case that paired-end data is available. 
+#' Kallisto quantifies transcript abundance from RNA-Seq data. The data is broken down into k-mers and each k-mer is pseudoaligned to k-mers in the index. 
+#' Because kallisto doesn't rely on full alignment, it is much quicker than other methods, without losing accuracy.
+#' @param file1 A character string of the name of the RNA-Seq data file (fastq.gz) to be processed.
+#' @param file2 A character string of the RNA-Seq data file (fastq.gz) to be processed - in the case there is paired-end data. 
 #' @param refIndex A character string of the name of the index file (usually, .idx) against which the fastq files are pseudoaligned. This file can be generated from a fasta-formatted transcriptome file using \code{\link{kallistoIndex}}.
 #' @param pairedEnd is a logical. If \code{true} (default), a paired end protocol is chosen (for this, the file1 and file2 parameters must be specified). If \code{false}, a single end protocol will be run, and only file1 will be processed.
-#' @param bootstrap An integer specifying the number of times MORE.
-#' @param fragmentLength An integer. MORE.
-#' @param fragmentSD A numeric. MORE.
+#' @param bootstrap An integer specifying the number of times to bootstrap. The output will provide a measure of variance.
+#' @param fragmentLength An integer. Estimated fragment length. Only required for single-end data (for paired-end data, Kallisto is able to calculate the fragment length). Default is 200 bp.
+#' @param fragmentSD A numeric. The standard deviation of the fragment length. Only required for single-end data (for paired-end data, Kallisto is able to calculate the standard deviation). Default is 10 bp. 
+#' @param refIndexFromPackage A logical, false by default. If the user would like to use an index provided by the package (these can be viewed using \code{availableReferences()}, he/she should specifiy "true" here. Otherwise, the function will assume the index is provided by the user.
 #' @return A data frame of the estimated abundances of each transcript specified in the input file(s). The data frame is also saved to a folder, which is given the title of the files, exlcuding the extensions. The folder contains these abundances (in text format and compressed format), as well as information about the run.
 #' @export
-kallistoQuant <- function(file1, file2, refIndex, pairedEnd = TRUE, bootstrap = 0, fragmentLength = 200, fragmentSD = 10){
-    cmd <- paste("kallisto quant -i", refIndex, "-b", bootstrap, "-o ", sep = " ")
-    if (pairedEnd == FALSE){
-            outfile <- outfile <- gsub(".fastq.gz", "", file1)
-            cmd <- paste(cmd, outfile, "--single -l", fragmentLength, "-s", fragmentSD, file1, sep = " ")
-    } else{
-            outfile <- gsub("_1.fastq.gz", "", file1)
-            cmd <- paste(cmd, outfile, file1, file2, sep = " ")
-    } 
-    
-    
-    print(cmd)
-    system(cmd)
-    abundances <- read.table(file = paste(outfile, "abundance.tsv", sep="/"), header = TRUE, sep = "\t")
-    return(abundances)
-}
-
-# NOTE TO DO:
-# do something with bias correction
-
-#Quantifies transcript expression
-#'
-#'DESCRIPTION GOES HERE
-#'
-#' @param file1 A character string of the name of the (fastq.gz) file to be processed.
-#' @param file2 A character string of the name of the second (fastq.gz) file to be processed. This is used in the case that paired-end data is available. 
-#' @param refIndex A character string of the name of the index file (usually, .idx) against which the fastq files are pseudoaligned. This file can be generated from a transcriptome (fasta) file using \code{\link{kallistoIndex}}.
-#' @param pairedEnd is a logical. If \code{true} (default), a paired end protocol is chosen (for this, the file1 and file2 parameters must be specified). If \code{false}, a single end protocol will be run, and only file1 will be processed.
-#' @param bootstrap An integer specifying the number of times MORE.
-#' @param fragmentLength An integer. MORE.
-#' @param fragmentSD A numeric. MORE.
-#' @param refIndexFromPackage A logical, false by default. MORE.
-#' @return A data frame of the estimated abundances of each transcript specified in the input file(s). The data frame is also saved to a folder, which is given the title of the files, exlcuding the extensions. The folder contains these abundances (in text format and compressed format), as well as information about the run.
-#' @export
-kallistoQuant2 <- function(file1, file2, refIndex, refIndexFromPackage = FALSE, pairedEnd = TRUE, bootstrap = 0, fragmentLength = 200, fragmentSD = 10){
-        
+kallistoQuant <- function(file1, file2, refIndex, refIndexFromPackage = FALSE, pairedEnd = TRUE, bootstrap = 0, fragmentLength = 200, fragmentSD = 10, biasCor = FALSE){
+        try({
+      
+        # if user selects index supplied by package        
         if (refIndexFromPackage == TRUE){
-                        refIndex <- system.file("extdata", "kallisto.idx", package="RNASeqAnalysis")
-                }
+                        refIndex <- system.file("extdata", refIndex, package="RNASeqAnalysis")
+        }
         
-        cmd <- paste("kallisto quant -i", refIndex, "-b", bootstrap, "-o ", sep = " ")
+        # if bootstrap is 0, make sure threads is 1        
+        if (bootstrap == 0){
+                threads <- 1
+        # otherwise, threads == bootstrap        
+        } else {
+                threads <- bootstrap 
+        }
+        
+        # if user selects bias correction        
+        if (biasCor == TRUE){
+                cmd <- paste("kallisto quant --plaintext --bias -i", refIndex, "-b", bootstrap, "-t", threads, "-o ", sep = " ")        
+        } else {
+                cmd <- paste("kallisto quant --plaintext -i", refIndex, "-b", bootstrap, "-t", threads, "-o ", sep = " ")
+        }
+        
+        # paired-end protocol
         if (pairedEnd == FALSE){
                 outfile <- outfile <- gsub(".fastq.gz", "", file1)
                 cmd <- paste(cmd, outfile, "--single -l", fragmentLength, "-s", fragmentSD, file1, sep = " ")
@@ -99,10 +85,16 @@ kallistoQuant2 <- function(file1, file2, refIndex, refIndexFromPackage = FALSE, 
                 cmd <- paste(cmd, outfile, file1, file2, sep = " ")
         } 
         
-        
         print(cmd)
         system(cmd)
-        abundances <- read.table(file = paste(outfile, "abundance.tsv", sep="/"), header = TRUE, sep = "\t")
+        abundances <- paste(outfile, "abundance.tsv", sep="/")
+        
+        if (!file.exists(abundances)){
+                stop("No output produced: check your Kallisto parameters")
+        }
+        
+        abundances <- read.table(file = abundances, header = TRUE, sep = "\t")
         return(abundances)
+})
 }
 

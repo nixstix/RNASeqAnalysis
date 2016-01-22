@@ -3,4 +3,3 @@
 export(availableReferences)
 export(kallistoIndex)
 export(kallistoQuant)
-export(kallistoQuant2)

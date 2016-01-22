@@ -2,7 +2,7 @@
 % Please edit documentation in R/kallisto.R
 \name{kallistoIndex}
 \alias{kallistoIndex}
-\title{Builds a transcriptome index from a FASTA formatted file of target sequences}
+\title{Builds a transcriptome index (.idx) from a FASTA-formatted transcriptome.}
 \usage{
 kallistoIndex(refTranscriptome, indexName = "./transcripts.idx")
 }
@@ -14,11 +14,13 @@ fasta format) to be indexed.}
 Default is "./transcripts.idx").}
 }
 \value{
-An index file which can be used to quantify expression data using
+An index file (.idx) which can be used to quantify expression data using
   \code{\link{kallistoQuant}} pseudoalignment.
 }
 \description{
-DESCRIPTION GOES HERES. Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}.
+\code{kallistoIndex} builds an index of the transcriptome. Once built, the transcriptome index (in the form of a De Bruijn graph) may be used for pseudoalignment of the target RNA-Seq data in order to quantify expression (see \code{kallistoQuant}). 
+A transcriptome De Bruijn graph (T-DBG) is constructed from k-mers in the transcriptome, where each k-mer in the transcriptome is a node in the T-DBG. Each transcript is represented by a different colour, and whenever a node appears in a transcript, it is given the colour of that transcript. MORE. 
+Kallisto must be installed locally. Kallisto can be downloaded from \url{https://pachterlab.github.io/kallisto/download.html}.
 }
 \examples{
 kallistoIndex("./transcripts.fasta")
