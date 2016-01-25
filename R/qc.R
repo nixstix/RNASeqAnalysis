@@ -1,22 +1,40 @@
-#' Filters single-end reads for quality
+#' Filters reads for quality
 #' 
 #' DESCRIPTION GOES HERE
 #' @param file A character string that is the name of the file to be processed. The input file must be a zipped fastq file (fastq.gz), but this extension should not be included in the character string.
+#' @param pairedEnd A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run. 
 #' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.
 #' @return A data frame containing statistics on the QC - how many reads were processed, how many reads were removed, the length of the reads. This information is appended to a "filteringStats" document in the working directory. In addition, the function generates a filtered fastq.gz file ("file-filt.fastq.gz").
 #' @examples 
-#' SEFilterAndTrim(file = "reads")
-#' SEFilterAndTrim(file = "reads", minlength = 35, Phred = 30)
-#' SEFilterAndTrim(file = "reads", Phred = 30)
-#' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. \code{\link{PEFilterAndTrim}} processes paired-end data in a similar manner.
+#' FilterAndTrim(file = "reads")
+#' FilterAndTrim(file = "reads", minlength = 35, Phred = 30)
+#' FilterAndTrim(file = "reads", Phred = 30)
+#' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
 #' @export
 #' @import ShortRead
+filterAndTrim <- function(file, pairedEnd = FALSE, minlength = 30, Phred = 25){
+        try({
+        if(!file.exists(file)){
+                stop("Input file not found")
+        }
+        
+        if (pairedEnd == FALSE){
+                SEFilterAndTrim(file = file, minlength = minlength, Phred = Phred)
+        } else {
+                PEFilterAndTrim(file = file, minlength = minlength, Phred = Phred)
+        }
+        })
+}
+
+
+# private function
 SEFilterAndTrim <- function(file, minlength = 30, Phred = 25){
         
         # open input stream
         file <- paste(file, "fastq.gz", sep = ".")
-        stream1 <- openStream(file = file)
+        stream1 <- FastqStreamer(file, readerBlockSize = 2e7,n=2e7)
+        on.exit(close(stream1))
         
         # define variables
         N_reads_in<-0
@@ -29,17 +47,14 @@ SEFilterAndTrim <- function(file, minlength = 30, Phred = 25){
         on.exit(close(stream1))
         
         destination1 <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = file)
-        
         repeat {
                 # input chunk
-                
                 fq1 <- yield(stream1)
                 fq1Len<-length(fq1)
                 if (fq1Len == 0)
                         break
                 N_reads_in<-N_reads_in+fq1Len
                 init_length<-max(width(fq1))
-                
                 
                 #trim leading/trailing N
                 pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
@@ -111,30 +126,18 @@ SEFilterAndTrim <- function(file, minlength = 30, Phred = 25){
 }
 
 
-#*****************************************************************************
 
-#' Filters single-end reads for quality
-#' 
-#' DESCRIPTION GOES HERE
-#' @param file A character string that is the name of the file to be processed. Files should be provided in pairs, with the extensions "_1.fastq.gz" and "_2.fastq.gz" - however, these extensions should not be included in the character string. 
-#' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.
-#' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 25.
-#' @return A data frame containing statistics on the QC - how many reads were processed, how many reads were removed, the length of the reads. This information is appended to a "filteringStats" document in the working directory. In addition, the function generates a filtered fastq.gz file ("file_1-filt.fastq.gz", "file_2-filt.fastq.gz").
-#' @examples 
-#' SEFilterAndTrim(file = "reads")
-#' SEFilterAndTrim(file = "reads", minlength = 25, Phred = 20)
-#' SEFilterAndTrim(file = "reads", Phred = 40)
-#' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. \code{\link{PEFilterAndTrim}} processes paired-end data in a similar manner.
-#' @export
-#' @import ShortRead
+# private function
 PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)  
 {
         
         ## open input stream
         file1 <- paste(file, "_1.fastq.gz", sep = "")
-        stream1 <- openStream(file = file1)
+        stream1 <- FastqStreamer(file, readerBlockSize = 2e7,n=2e7)
+        on.exit(close(stream1))
         file2 <- paste(file, "_2.fastq.gz", sep = "")
-        stream1 <- openStream(file = file2)
+        stream2 <- FastqStreamer(file, readerBlockSize = 2e7,n=2e7)
+        on.exit(close(stream2))
         
         # define variables
         N_reads_in_1<-0
@@ -149,7 +152,7 @@ PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)
                 N_reads_in_1<-N_reads_in_1+fq1Len
                 init_length_1<-max(width(fq1))
                 
-                fq2 <- yield(stream1)
+                fq2 <- yield(stream2)
                 fq2Len<-length(fq2)
                 if (fq2Len == 0)
                         break
@@ -208,14 +211,16 @@ PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)
         if(file.exists("filteringStatsPE")){
                 dfStats <- read.table("filteringStatsPE", sep = "\t", header = TRUE)
                 df <- data.frame("File"=file, 
-                                 "No_reads_in"=N_reads_in_1 )
+                                 "No_reads_in_L"=N_reads_in_1,
+                                 "No_reads_in_R"=N_reads_in_2)
                 dfStats <- rbind(dfStats, df)
                 
         } else {
                 
                 dfStats <- data.frame(
                         File=character(),
-                        No_reads_in=numeric(),
+                        No_reads_in_L=numeric(),
+                        No_reads_in_R=numeric(),
                         #No_filt_reads=numeric(),
                         #Qual_filt_reads=numeric(),
                         #Len_filt_reads=numeric(),
@@ -224,7 +229,7 @@ PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)
                         #No_reads_out=numeric(),
                         stringsAsFactors=FALSE
                 )
-                dfStats[1,] <- c(file1, N_reads_in_1)
+                dfStats[1,] <- c(file1, N_reads_in_1, N_reads_in_2)
                 
         }
         write.table(dfStats, file = "filteringStatsPE", quote = FALSE, sep = "\t", col.names = TRUE)
@@ -234,9 +239,3 @@ PEFilterAndTrim <- function(file, minlength = 30, Phred = 25)
 
 # work on stats to be returned
 
-# private function
-openStream <- function(file){
-        stream <- FastqStreamer(file, readerBlockSize = 2e7,n=2e7)
-        on.exit(close(stream))
-        return(stream)
-}
