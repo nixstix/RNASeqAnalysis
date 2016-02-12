@@ -91,6 +91,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         
         
         # collect results into one object
+        attr(destination, "name") <- paste(file, "-filt", sep="")
         attr(destination, "prefilterQA") <- QASum_prefilter
         attr(destination, "filter") <-
                 data.frame(readsIn = N_reads_in, filterN = N_filt_reads, trimQual = Quality_filt_reads, minLen = minLenFqa,  readsOut = N_reads_out)
