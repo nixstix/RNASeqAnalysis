@@ -8,6 +8,7 @@
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30
 #' @return An object of class QualityFilterResults. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads 
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
+#' @details ADD MORE DETAILS
 #' @export
 #' @import ShortRead
 runQAandFilter <- function(dataFile = "data.csv", pairedEnd = FALSE, minlength = 30, Phred = 25){
@@ -94,8 +95,9 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         attr(destination, "name") <- paste(file, "-filt", sep="")
         attr(destination, "prefilterQA") <- QASum_prefilter
         attr(destination, "filter") <-
-                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q)
+                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = readsOut-trimForN-trimForQual)
         attr(destination, "postfilterQA") <- QASum_postfilter
         class(destination) <- "QualityFilterResults"
         return(destination)
 }
+
