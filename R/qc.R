@@ -81,6 +81,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
                 fqa <- fqa[width(fqa) >= minlength]
                 
                 N_reads_out <- N_reads_out+length(fqa)
+                fullLengthReadsOut <- N_reads_out-N_trim_N-N_trim_Q
                 
                 writeFastq(object = fqa, file = destination, mode = "a",compress = T)
         }
@@ -95,7 +96,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         attr(destination, "name") <- paste(file, "-filt", sep="")
         attr(destination, "prefilterQA") <- QASum_prefilter
         attr(destination, "filter") <-
-                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = readsOut-trimForN-trimForQual)
+                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = fullLengthReadsOut)
         attr(destination, "postfilterQA") <- QASum_postfilter
         class(destination) <- "QualityFilterResults"
         return(destination)
