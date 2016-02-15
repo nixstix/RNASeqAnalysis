@@ -43,7 +43,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         destination <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = fileExt)
         
         # define variables
-        N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- 0L
+        N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- N_trim_N <- N_trim_Q <- 0L
         
         repeat {
                 # input chunk
@@ -52,13 +52,14 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
                 if (fq1Len == 0)
                         break
                 
-                # count number of reads in
+                # count number and length of reads in
                 N_reads_in<-N_reads_in+fq1Len
+                init_length <-max(width(fq1))
                 
                 #trim leading/trailing N
                 pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
                 fqa<-narrow(fq1, start(pos_1), end(pos_1))
-                
+                N_trim_N<-N_trim_N+length(fqa[which(width(fqa)<init_length)])
                 
                 # filter reads containing N
                 failed_N_1<-nFilter()(fqa)
@@ -68,12 +69,11 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
                         fqa<-fqa[-toTrash_1]
                 }
                 
-                # trim as soon as 2 of 7 nucleotides has quality encoding less than phred score tres
+                # trim as soon as 2 of 5 nucleotides has quality encoding less than phred score tres
                 #determine quality ascii character for trimming
                 treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
                 fqa <- trimTailw(fqa, 2, treschar, 2)
-                ####### !!!!!!!! NOT WORKING !!!!!!!!! #########
-                Quality_filt_reads<-Quality_filt_reads+N_reads_in-N_filt_reads-length(fqa)
+                N_trim_Q<-N_trim_Q+length(fqa[which(width(fqa)<init_length)])
                 
                 # drop reads that are less than x nt
                 minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
@@ -94,7 +94,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         attr(destination, "name") <- paste(file, "-filt", sep="")
         attr(destination, "prefilterQA") <- QASum_prefilter
         attr(destination, "filter") <-
-                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, trimQual = Quality_filt_reads, minLen = minLenFqa,  readsOut = N_reads_out)
+                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q)
         attr(destination, "postfilterQA") <- QASum_postfilter
         class(destination) <- "QualityFilterResults"
         return(destination)
