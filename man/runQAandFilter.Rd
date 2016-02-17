@@ -4,11 +4,10 @@
 \alias{runQAandFilter}
 \title{Performs quality checks, then filters reads for quality}
 \usage{
-runQAandFilter(dataFile = "data.csv", pairedEnd = FALSE, minlength = 30,
-  Phred = 25)
+runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25)
 }
 \arguments{
-\item{dataFile}{A character string that is the name of the file to be processed. The file used must be in a format identical to that of "data.csv".}
+\item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate.}
 
 \item{pairedEnd}{A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run}
 
