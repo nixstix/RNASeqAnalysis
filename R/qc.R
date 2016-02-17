@@ -2,7 +2,7 @@
 #' 
 #' DESCRIPTION GOES HERE
 #' 
-#' @param dataFile A character string that is the name of the file to be processed. The file used must be in a format identical to that of "data.csv".
+#' @param dataFile An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate.
 #' @param pairedEnd A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run
 #' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30
@@ -11,10 +11,7 @@
 #' @details ADD MORE DETAILS
 #' @export
 #' @import ShortRead
-runQAandFilter <- function(dataFile = "data.csv", pairedEnd = FALSE, minlength = 30, Phred = 25){
-        
-        # open data file
-        dataFile <- read.csv(file = dataFile, sep = ",")
+runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25){
         
         # extract single-end names found in datafile to list
         dataFile$PE <- gsub(" ", "", dataFile$PE)
@@ -101,4 +98,3 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         class(destination) <- "QualityFilterResults"
         return(destination)
 }
-
