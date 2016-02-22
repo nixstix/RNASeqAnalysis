@@ -4,7 +4,8 @@
 \alias{runQAandFilter}
 \title{Performs quality checks, then filters reads for quality}
 \usage{
-runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25)
+runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
+  blockSize = 1e+08, readerBlockSize = 1e+05)
 }
 \arguments{
 \item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate.}
@@ -13,7 +14,11 @@ runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25)
 
 \item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30}
 
+\item{blockSize}{An integer which specifies the number of reads to be read at a time when processing. Default is 1e8.}
+
 \item{minLength}{An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides}
+
+\item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
 An object of class QualityFilterResults. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads
@@ -26,5 +31,7 @@ ADD MORE DETAILS
 }
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
+
+\code{ShortRead} for more information about \code{blockSize} (n) and \code{readerBlockSize}.
 }
 

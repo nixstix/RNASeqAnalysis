@@ -6,12 +6,15 @@
 #' @param pairedEnd A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run
 #' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30
+#' @param blockSize An integer which specifies the number of reads to be read at a time when processing. Default is 1e8. 
+#' @param readBlockSize An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.
 #' @return An object of class QualityFilterResults. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads 
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
+#' @seealso \code{ShortRead} for more information about \code{blockSize} (n) and \code{readerBlockSize}.
 #' @details ADD MORE DETAILS
 #' @export
 #' @import ShortRead
-runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25){
+runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
         
         # extract single-end names found in datafile to list
         dataFile$PE <- gsub(" ", "", dataFile$PE)
@@ -19,12 +22,12 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
         SElist <- SEdata[,1]
         
         if (pairedEnd == FALSE){ 
-                run <- lapply(SElist, SEFilterAndTrim, minlength = minlength, Phred = Phred)
+                run <- lapply(SElist, SEFilterAndTrim, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize)
         }
 } 
 
 # private function
-SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
+SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
         
         fileExt <- paste(file, ".fastq.gz", sep = "")
         
@@ -35,7 +38,7 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred){
         
         
         # open input stream
-        stream1 <- FastqStreamer(fileExt, readerBlockSize = 60000, n = 60000)
+        stream1 <- FastqStreamer(fileExt, n = blockSize, readerBlockSize = readerBlockSize)
         on.exit(close(stream1))
         
         destination <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = fileExt)
