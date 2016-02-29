@@ -23,25 +23,29 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
         
         if (pairedEnd == FALSE){ 
                 run <- lapply(SElist, SEFilterAndTrim, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize)
+                
+                print("QA results may be found in the 'QA' folder")
         }
 } 
 
 # private function
 SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
         
-        fileExt <- paste(file, ".fastq.gz", sep = "")
+        file <- as.character(file)
+        fileExt <- gsub(".fastq.gz", "", file)
         
         # pre-filter quality check
-        QASum_prefilter <- qa(fileExt, type = "fastq")
-        QADest <- paste(file, "/PreFiltQC", sep = "")
+        QASum_prefilter <- qa(file, type = "fastq")
+        
+        QADest <- paste("QA/", fileExt, "/PreFiltQC", sep = "")
         QASum_prefilterRpt <- report(x = QASum_prefilter, dest = QADest, type = "html")
         
         
         # open input stream
-        stream1 <- FastqStreamer(fileExt, n = blockSize, readerBlockSize = readerBlockSize)
+        stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
         on.exit(close(stream1))
         
-        destination <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = fileExt)
+        destination <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = file)
         
         # define variables
         N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- N_trim_N <- N_trim_Q <- 0L
@@ -88,7 +92,8 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSiz
         
         # post-filter quality check
         QASum_postfilter <- qa(destination, type = "fastq")
-        QADest <- paste(file, "/PostFiltQC", sep = "")
+        
+        QADest <- paste("QA/", fileExt, "/PostFiltQC", sep = "")
         QASum_postfilterRpt <- report(x = QASum_postfilter, dest = QADest, type = "html")
         
         
@@ -99,5 +104,6 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSiz
                 data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = fullLengthReadsOut)
         attr(destination, "postfilterQA") <- QASum_postfilter
         class(destination) <- "QualityFilterResults"
+        
         return(destination)
 }
