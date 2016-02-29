@@ -31,7 +31,7 @@ The function should be run in the working directory, where all fastq files are f
 
 \code{runQAandFilter} iterates over each file specified in the "datafile". It runs a quality assessment from the \code{ShortRead} package. The \code{ShortRead} package (\url{https://bioconductor.org/packages/release/bioc/html/ShortRead.html}) contains more information about this step.
 
-At the next step, the function filters and trims the reads for quality:
+At the next step, the function filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{ShortRead} package.
 
 * it removes any trailing or leadining N's from each sequence,
 
