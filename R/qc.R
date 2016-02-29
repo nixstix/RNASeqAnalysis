@@ -21,10 +21,11 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
         SEdata <- dataFile[which(dataFile$PE == "SE"), ]
         SElist <- SEdata[,1]
         
+        print("QA results will be output to the 'QA' folder")
+        
         if (pairedEnd == FALSE){ 
                 run <- lapply(SElist, SEFilterAndTrim, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize)
                 
-                print("QA results may be found in the 'QA' folder")
         }
 } 
 
