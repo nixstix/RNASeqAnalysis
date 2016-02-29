@@ -8,30 +8,46 @@ runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
   blockSize = 1e+08, readerBlockSize = 1e+05)
 }
 \arguments{
-\item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate.}
+\item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate. MORE INFO ON THE DATA FILE}
 
-\item{pairedEnd}{A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run}
+\item{pairedEnd}{A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run.}
 
-\item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30}
+\item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.}
 
 \item{blockSize}{An integer which specifies the number of reads to be read at a time when processing. Default is 1e8.}
 
-\item{minLength}{An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides}
+\item{minLength}{An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.}
 
 \item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
-An object of class QualityFilterResults. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads
+An object of class \code{QualityFilterResults}. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads.
 }
 \description{
-DESCRIPTION GOES HERE
+The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file. After this processing, a second quality check is performed.
 }
 \details{
-ADD MORE DETAILS
+The function should be run in the working directory, where all fastq files are found.
+
+\code{runQAandFilter} iterates over each file specified in the "datafile". It runs a quality assessment from the \code{ShortRead} package. The \code{ShortRead} package (\url{https://bioconductor.org/packages/release/bioc/html/ShortRead.html}) contains more information about this step.
+
+At the next step, the function filters and trims the reads for quality:
+
+* it removes any trailing or leadining N's from each sequence,
+
+* it removes any reads wich still contain N's,
+
+* it trims the trailing end when it finds a minimum of 2 poor-quality bases in a window of 5. The threshold for poor quality is determined by the parameter "Phred", where the Phred score is logarithmically related to the probability of errors at each base,
+
+* it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
+
+Following this filtering, a new quality assessment is run on the newly-flitered fastq files.
+
+The function produces a new set of fastq files which have been filtered. Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the two quality reports, as well as a summary of how many reads have been trimmed or removed.
 }
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
 
-\code{ShortRead} for more information about \code{blockSize} (n) and \code{readerBlockSize}.
+\code{ShortRead} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
 }
 
