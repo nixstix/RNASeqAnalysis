@@ -1,14 +1,14 @@
 #' Performs quality checks, then filters reads for quality
 #' 
-#' The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file. After this processing, a second quality check is performed. 
+#' The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
 #' 
-#' @param dataFile An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate. MORE INFO ON THE DATA FILE
+#' @param dataFile An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate, FilteredFile. MORE INFO ON THE DATA FILE
 #' @param pairedEnd A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run.
 #' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.
 #' @param blockSize An integer which specifies the number of reads to be read at a time when processing. Default is 1e8. 
 #' @param readBlockSize An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.
-#' @return An object of class \code{QualityFilterResults}. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads. 
+#' @return An object of class \code{QualityFilterResults}. Contains quality checks run before the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads. 
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
 #' @seealso \code{ShortRead} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
 #' @details The function should be run in the working directory, where all fastq files are found.
@@ -19,43 +19,43 @@
 #'  
 #' @details * it trims the trailing end when it finds a minimum of 2 poor-quality bases in a window of 5. The threshold for poor quality is determined by the parameter "Phred", where the Phred score is logarithmically related to the probability of errors at each base,
 #' @details * it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
-#' @details Following this filtering, a new quality assessment is run on the newly-flitered fastq files. 
-#' @details The function produces a new set of fastq files which have been filtered. Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the two quality reports, as well as a summary of how many reads have been trimmed or removed. 
+#' @details The function produces a new set of fastq files which have been filtered. The user must specify in the "FILTEREDFILE" column of the data file the output file. The user may specify the same output file for multiple input files - this will append new output to existing files, thereby allowing de-multiplexing of samples which have been run on different lanes.   
+#' Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the pre-filtered quality reports, as well as a summary of how many reads have been trimmed or removed. 
 #' @export
 #' @import ShortRead
 runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
         
         # extract single-end names found in datafile to list
         dataFile$PE <- gsub(" ", "", dataFile$PE)
-        SEdata <- dataFile[which(dataFile$PE == "SE"), ]
-        SElist <- SEdata[,1]
+        dataFile <- dataFile[which(dataFile$PE == "SE"), ]
         
         print("QA results will be output to the 'QA' folder")
         
         if (pairedEnd == FALSE){ 
-                run <- lapply(SElist, SEFilterAndTrim, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize)
+                run <- mapply(SEFilterAndTrim, dataFile$FILE, dataFile$FILTEREDFILE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
                 
+                return(run)               
         }
 } 
 
 # private function
-SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
         
         file <- as.character(file)
+        destination <- as.character(destination)
         fileExt <- gsub(".fastq.gz", "", file)
         
         # pre-filter quality check
         QASum_prefilter <- qa(file, type = "fastq")
         
-        QADest <- paste("QA/", fileExt, "/PreFiltQC", sep = "")
+        QADest <- paste("QA/", fileExt, sep = "")
         QASum_prefilterRpt <- report(x = QASum_prefilter, dest = QADest, type = "html")
-        
         
         # open input stream
         stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
         on.exit(close(stream1))
         
-        destination <- gsub(pattern = ".fastq.gz", replacement = "-filt.fastq.gz", x = file)
+        destination <- as.character(destination)
         
         # define variables
         N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- N_trim_N <- N_trim_Q <- 0L
@@ -100,21 +100,13 @@ SEFilterAndTrim <- function(file, minlength = minlength, Phred = Phred, blockSiz
                 writeFastq(object = fqa, file = destination, mode = "a",compress = T)
         }
         
-        # post-filter quality check
-        QASum_postfilter <- qa(destination, type = "fastq")
-        
-        QADest <- paste("QA/", fileExt, "/PostFiltQC", sep = "")
-        QASum_postfilterRpt <- report(x = QASum_postfilter, dest = QADest, type = "html")
-        
-        
         # collect results into one object
-        attr(destination, "name") <- paste(file, "-filt", sep="")
-        attr(destination, "prefilterQA") <- QASum_prefilter
-        attr(destination, "filter") <-
-                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = fullLengthReadsOut)
-        attr(destination, "postfilterQA") <- QASum_postfilter
-        class(destination) <- "QualityFilterResults"
+        attr(file, "inputFile") <- file
+        attr(file, "prefilterQA") <- QASum_prefilter
         
-        return(destination)
+        attr(file, "filter") <-
+                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = fullLengthReadsOut)
+        attr(file, "outputFile") <- destination
+        class(file) <- "QualityFilterResults"
+        return(file)
 }
-

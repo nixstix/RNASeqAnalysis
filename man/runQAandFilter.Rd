@@ -8,7 +8,7 @@ runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
   blockSize = 1e+08, readerBlockSize = 1e+05)
 }
 \arguments{
-\item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate. MORE INFO ON THE DATA FILE}
+\item{dataFile}{An R data frame with the data to be processed. The R object must contain the following headings: File, PE, Sample, Replicate, FilteredFile. MORE INFO ON THE DATA FILE}
 
 \item{pairedEnd}{A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run.}
 
@@ -21,10 +21,10 @@ runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
 \item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
-An object of class \code{QualityFilterResults}. Contains quality checks run before and after the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads.
+An object of class \code{QualityFilterResults}. Contains quality checks run before the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads.
 }
 \description{
-The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file. After this processing, a second quality check is performed.
+The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
 }
 \details{
 The function should be run in the working directory, where all fastq files are found.
@@ -41,9 +41,8 @@ At the next step, the function filters and trims the reads for quality. This is 
 
 * it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
 
-Following this filtering, a new quality assessment is run on the newly-flitered fastq files.
-
-The function produces a new set of fastq files which have been filtered. Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the two quality reports, as well as a summary of how many reads have been trimmed or removed.
+The function produces a new set of fastq files which have been filtered. The user must specify in the "FILTEREDFILE" column of the data file the output file. The user may specify the same output file for multiple input files - this will append new output to existing files, thereby allowing de-multiplexing of samples which have been run on different lanes.   
+Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the pre-filtered quality reports, as well as a summary of how many reads have been trimmed or removed.
 }
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
