@@ -58,7 +58,7 @@ SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Ph
         destination <- as.character(destination)
         
         # define variables
-        N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- N_trim_N <- N_trim_Q <- 0L
+        N_reads_in <- N_filt_reads <- Quality_filt_reads <- minLenFqa <- N_reads_out <- N_trim <- 0L
         
         repeat {
                 # input chunk
@@ -74,9 +74,8 @@ SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Ph
                 #trim leading/trailing N
                 pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
                 fqa<-narrow(fq1, start(pos_1), end(pos_1))
-                N_trim_N<-N_trim_N+length(fqa[which(width(fqa)<init_length)])
                 
-                # filter reads containing N
+                # drop reads containing N
                 failed_N_1<-nFilter()(fqa)
                 toTrash_1<-which(failed_N_1@.Data==F)
                 N_filt_reads<-N_filt_reads+length(toTrash_1)
@@ -88,14 +87,16 @@ SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Ph
                 #determine quality ascii character for trimming
                 treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
                 fqa <- trimTailw(fqa, 2, treschar, 2)
-                N_trim_Q<-N_trim_Q+length(fqa[which(width(fqa)<init_length)])
                 
                 # drop reads that are less than x nt
                 minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
                 fqa <- fqa[width(fqa) >= minlength]
                 
                 N_reads_out <- N_reads_out+length(fqa)
-                fullLengthReadsOut <- N_reads_out-N_trim_N-N_trim_Q
+                
+                # calculate how many reads have been trimmed
+                N_trim <- N_trim + length(fqa[which(width(fqa) < init_length)])
+                fullLengthReadsOut <- N_reads_out - N_trim
                 
                 writeFastq(object = fqa, file = destination, mode = "a",compress = T)
         }
@@ -105,8 +106,10 @@ SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Ph
         attr(file, "prefilterQA") <- QASum_prefilter
         
         attr(file, "filter") <-
-                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trimForN = N_trim_N, trimForQual = N_trim_Q, fullLengthReadsOut = fullLengthReadsOut)
+                data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut)
         attr(file, "outputFile") <- destination
         class(file) <- "QualityFilterResults"
         return(file)
 }
+
+
