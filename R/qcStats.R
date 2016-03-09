@@ -30,9 +30,10 @@ summariseFilteringStats <- function(x){
                col = c("blue","black"),"bottomright")
         
         # stacked bar plot of percentages of reads in, reads out, reads trimmed
+                
         statsPercent <- stats[, c("readsIn", "filterN", "filterMinLen", "trim", "fullLengthReadsOut")]
         statsPercent <- apply(statsPercent,1,function(x) 
-                x[2:5]/rep(x[1],length(x[2:5])))
+                x[2:5] / x[1] )
         statsPercent <- statsPercent[c(4,3,2,1), ]
         
         barplot(height = statsPercent, 
