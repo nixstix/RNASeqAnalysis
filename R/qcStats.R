@@ -3,7 +3,7 @@
 #' DESCRIPTION GOES HERE
 #' 
 #' @param x An object of class QualityFilterResults (e.g. returned from \code{runQAandFilter}). 
-#' @return A dataframe. The dataframe contains the number of reads which have been trimmed (on leading or trailing tails) for poor quality or unknown bases, the number of reads which have been removed entirely due to poort quality, possession of unknown bases, or length too short. Also produces graphs of absolute number of reads output, and relative numbers of reads which have been trimmed or removed (in PDF format).
+#' @return A dataframe. The dataframe contains the number of reads which have been trimmed (on leading or trailing tails) for poor quality or unknown bases, the number of reads which have been removed entirely due to poor quality, possession of unknown bases, or length too short. Also produces graphs of absolute number of reads output, and relative numbers of reads which have been trimmed or removed (in PDF format).
 #' @seealso \url{runQAandFilter} 
 #' @export
 summariseFilteringStats <- function(x){
@@ -19,15 +19,18 @@ summariseFilteringStats <- function(x){
         mean_reads<-mean(stats$readsOut)
         median_reads<-median(stats$readsOut)
         statsMat <- as.matrix(t(stats))
-        barplot(height = statsMat[5,], 
+        print(max(statsMat["readsOut", ]))
+        #barplot(height = statsMat[5,], 
+        barplot(height = statsMat["readsOut", ],
                 border=NA,
                 axes = TRUE, cex.names = 0.65, 
                 xlab = "Sample", ylab = "Nr. reads", las = 2,
-                main = "Number of reads output per sample", col = "darkred")
-        abline(h = median_reads, col="blue",lwd =2, lty = 5)
+                ylim = c(0, 1.1 * max(statsMat["readsOut", ])),
+                main = "Number of reads output per sample", col = "blue")
+        abline(h = median_reads, col="red",lwd =2, lty = 5)
         abline(h = mean_reads, col="black",lwd =2, lty = 2)
         legend(legend = c("median", "mean"), lty = c(6,2,1), lwd=2, 
-               col = c("blue","black"),"bottomright")
+               col = c("red","black"),"bottomright")
         
         # stacked bar plot of percentages of reads in, reads out, reads trimmed
                 
