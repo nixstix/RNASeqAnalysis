@@ -19,7 +19,7 @@ summariseFilteringStats <- function(x){
         mean_reads<-mean(stats$readsOut)
         median_reads<-median(stats$readsOut)
         statsMat <- as.matrix(t(stats))
-        barplot(height = statsMat[4,], 
+        barplot(height = statsMat[5,], 
                 border=NA,
                 axes = TRUE, cex.names = 0.65, 
                 xlab = "Sample", ylab = "Nr. reads", las = 2,
@@ -31,16 +31,16 @@ summariseFilteringStats <- function(x){
         
         # stacked bar plot of percentages of reads in, reads out, reads trimmed
                 
-        statsPercent <- stats[, c("readsIn", "filterN", "filterMinLen", "trim", "fullLengthReadsOut")]
+        statsPercent <- stats[, c("readsIn", "filterN", "filterQ", "filterMinLen", "trim", "fullLengthReadsOut")]
         statsPercent <- apply(statsPercent,1,function(x) 
-                x[2:5] / x[1] )
-        statsPercent <- statsPercent[c(4,3,2,1), ]
+                x[2:6] / x[1] )
+        statsPercent <- statsPercent[c(5,4,3,2,1), ]
         
         barplot(height = statsPercent, 
                 border = NA, axes = TRUE, las = 2, cex.names = 0.65, cex.axis = 0.8,
                 xlab = "Sample", ylab = "Proportion of reads",
-                main = "Filtering by sample", col = c("darkgreen", "green", "red", "darkred"))
-        legend(legend = rev(c("Intact reads","trimmed for trailing quality or trailing N", "removed for length", "removed for N")),pch = 15, col = rev(c("darkgreen", "green", "red", "darkred")), "bottomright")
+                main = "Filtering by sample", col = c("darkgreen", "green", "red", "darkred", "indianred"))
+        legend(legend = rev(c("Intact reads","trimmed for trailing quality or trailing N", "removed for length", "removed for quality", "removed for N")),pch = 15, col = rev(c("darkgreen", "green", "red", "darkred", "indianred")), "bottomright")
         
         print("A barplot of results has been saved to Barplots_filtering_stats.pdf")
         
