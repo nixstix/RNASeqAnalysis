@@ -21,7 +21,7 @@ runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
 \item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
-An object of class \code{QualityFilterResults}. Contains quality checks run before the filter, as well as summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads.
+An object of class \code{QualityFilterResults}. Contains a pointer to the input fastq file, the output fastq file (i.e. after filtering), and summary statistics of the filtering. Also outputs directories with quality results, and filtered fastq.gz reads.
 }
 \description{
 The function checks each fastq file specified in the "data file" for quality, and writes findings to a report. Following this, the function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
@@ -29,9 +29,9 @@ The function checks each fastq file specified in the "data file" for quality, an
 \details{
 The function should be run in the working directory, where all fastq files are found.
 
-\code{runQAandFilter} iterates over each file specified in the "datafile". It runs a quality assessment from the \code{ShortRead} package. The \code{ShortRead} package (\url{https://bioconductor.org/packages/release/bioc/html/ShortRead.html}) contains more information about this step.
+\code{runQAandFilter} iterates over each file specified in the "datafile". It runs a quality assessment from the \code{ShortRead} package. The \code{ShortRead} package (\url{https://bioconductor.org/packages/release/bioc/html/ShortRead.html}) contains more information about this step. The quality assessment is performed before and after the filtering step. All quality assessment data is output to the "QA" directory.
 
-At the next step, the function filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{ShortRead} package.
+At the next step (the "filtering" step), the function filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{ShortRead} package.
 
 * it removes any trailing or leadining N's from each sequence,
 
@@ -42,7 +42,8 @@ At the next step, the function filters and trims the reads for quality. This is 
 * it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
 
 The function produces a new set of fastq files which have been filtered. The user must specify in the "FILTEREDFILE" column of the data file the output file. The user may specify the same output file for multiple input files - this will append new output to existing files, thereby allowing de-multiplexing of samples which have been run on different lanes.   
-Quality reports are output to the working directory. A new R object (\code{QualityFilterResults}) is also created, which contains the pre-filtered quality reports, as well as a summary of how many reads have been trimmed or removed.
+Quality reports are output to the working directory (under the QA directory). R objects of the raw data used to generate the reports are also saved to this directory. 
+Finally, a new R object (\code{QualityFilterResults}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed.
 }
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
