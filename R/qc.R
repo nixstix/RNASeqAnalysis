@@ -28,7 +28,6 @@
 runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
         
         # extract single-end names found in datafile to list
-        dataFile$PE <- gsub(" ", "", dataFile$PE)
         dataFile <- dataFile[which(dataFile$PE == "SE"), ]
         
         print("QA results will be output to the 'QA' folder")
@@ -36,11 +35,8 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
         
         if (pairedEnd == FALSE){ 
                 
-                file <- as.character(dataFile$FILE)
-                destination <- as.character(dataFile$FILTEREDFILE)
-                
                 # pre-filter quality check
-                QASum_prefilter <- qa(dirPath = file, type = "fastq")
+                QASum_prefilter <- qa(dirPath = dataFile$FILE, type = "fastq")
                 
                 #QADest <- paste("QA2/", fileExt, sep = "")
                 QASum_prefilterRpt <- report(x = QASum_prefilter, dest = "QA/prefilter", type = "html")
@@ -49,9 +45,7 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
                 run <- mapply(SEFilterAndTrim, dataFile$FILE, dataFile$FILTEREDFILE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
                 
                 # pre-filter quality check
-                QASum_postfilter <- qa(dirPath = unique(destination), type = "fastq")
-                
-                #QADest <- paste("QA2/", fileExt, sep = "")
+                QASum_postfilter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq")
                 QASum_postfilterRpt <- report(x = QASum_postfilter, dest = "QA/postfilter/", type = "html")
                 save(QASum_postfilter, file = "./QA/postfilter/QASum_postfilter.RData")
                 
@@ -61,10 +55,6 @@ runQAandFilter <- function(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 
 
 # private function
 SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
-        
-        file <- as.character(file)
-        destination <- as.character(destination)
-        fileExt <- gsub(".fastq.gz", "", file)
         
         # open input stream
         stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
@@ -123,7 +113,6 @@ SEFilterAndTrim <- function(file, destination, minlength = minlength, Phred = Ph
         
         attr(file, "filter") <-
                 data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterQ = Q_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut)
-        
         class(file) <- "QualityFilterResults"
         return(file)
 }
