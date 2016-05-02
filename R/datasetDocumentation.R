@@ -2,7 +2,7 @@
 #' @title (Empty) template data file which summarises the data to be analysed
 #' @docType data
 #' @author Nicky Thrupp \email{nixthrupp@gmail.com}
-#' @keyword datasets
+#' @keywords datasets
 #' @description This is an empty dataset, the purpose of which is to act as a template for users. In the data file, the name of the file, the name of the sample and the technical replicate, and whether the sample is paired-end or single-end should be included. In addition, if the user is planning to filter the input file (see \code{runQAandFilter}), a column is provided for the user to add the name of the output fastq file.
 #' @description This data file acts as input to many of the package's functions. The format of the data file should not be altered, save to add observations (rows).
 #' @description The data set \code{datafileExample} is an example of a data file containing observations.  

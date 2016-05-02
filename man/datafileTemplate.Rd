@@ -27,4 +27,5 @@ The data set \code{datafileExample} is an example of a data file containing obse
 \author{
 Nicky Thrupp \email{nixthrupp@gmail.com}
 }
+\keyword{datasets}
 
