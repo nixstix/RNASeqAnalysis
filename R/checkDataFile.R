@@ -1,10 +1,15 @@
 #' Checks that the format of the "data file" (which is used as input in many functions) is correct.
-#' The function takes as input a data file (see \code{datafileTemplate}), and checks whether it is in a format acceptable to be used as input to other functions.
+#' @description The function takes as input a data file (see \code{datafileTemplate}), and checks whether it is in a format acceptable to be used as input to other functions.
 #' @param x. A data frame containing: the name of the file to be processed, whether it is single or paried-end data, the sample and replicate ID, and (optional) the name of an output file which results from the \code{runQAandFilter} function will be written to.
 #' @return A data frame which has been modified - the column names and classes have been verified (and corrected if necessary), all white space has been removed, observations relating to files which do not exist in the directory have been removed. The function also prints out any duplicated files.
 #' @seealso \code{datafileTemplate}
 #' @export 
 checkDataFile <- function(x){
+        
+        # check min number of columns exists
+        if (ncol(x) < 5){
+                stop("You need at least 5 columns in the data file. See datafileTemplate for more information", call. = TRUE)
+        }
         
         # check column headings
         x <- checkColHeadings(x)
@@ -31,6 +36,9 @@ checkDataFile <- function(x){
         cat("\n")
         
         # check for SE/PE integrity
+        cat(" Checking for any data which is not labeled as PE or as SE (this data will not be processed):", "\n")
+        print(x[!grepl("^(S|P)E$", x$PE),])
+        cat("\n")
        
         # check all files mentioned exist in the directory
         cat(" Checking for any files missing from the directory (this data will be REMOVED from the data set):", "\n")
@@ -61,10 +69,6 @@ checkColHeadings <- function(x){
                 colnames(x)[4] <- "REPLICATE"
                 cat("Column 4 header has been changed", "\n")
         }
-        if (!colnames(x)[4] == "REPLICATE"){
-                colnames(x)[4] <- "REPLICATE"
-                cat("Column 4 header has been changed", "\n")
-        }
         if (!colnames(x)[5] == "FILTEREDFILE"){
                 colnames(x)[5] <- "FILTEREDFILE"
                 cat("Column 5 header has been changed", "\n")
@@ -73,4 +77,3 @@ checkColHeadings <- function(x){
         
         return(x)
 }
-
