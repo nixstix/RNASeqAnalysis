@@ -45,6 +45,10 @@ checkDataFile <- function(x){
         print(x[!file.exists(as.character(x$FILE)), ])
         x <- x[file.exists(as.character(x$FILE)), ]
         
+        # replace blank cells with NA
+        x[x == ""] <- NA
+        x[x == " "] <- NA
+        
         return(x)
 }
 
