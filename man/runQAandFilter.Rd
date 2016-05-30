@@ -4,13 +4,11 @@
 \alias{runQAandFilter}
 \title{Performs quality checks, then filters reads for quality}
 \usage{
-runQAandFilter(dataFile, pairedEnd = FALSE, minlength = 30, Phred = 25,
-  blockSize = 1e+08, readerBlockSize = 1e+05)
+runQAandFilter(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
+  readerBlockSize = 1e+05)
 }
 \arguments{
 \item{dataFile}{An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}.}
-
-\item{pairedEnd}{A logical. If false (default), a single-end protocol will be run. If true, a paired-end protocol will be run.}
 
 \item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.}
 
