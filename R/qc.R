@@ -29,12 +29,18 @@ filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8,
         dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
         dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
         
-        # ADD EXCEPTION IF DF IS EMPTY
-        runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
-        #print(runSE)
+        if(nrow(dataFileSE) > 0) {
+                runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F) 
+        } else {
+                runSE <- NULL
+        }
         
-        runPE <- mapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
-        #print(runPE)
+        if(nrow(dataFilePE) > 0) {
+                runPE <- mapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F) }
+        else{
+                runPE <- NULL
+        }
+        
         
         run <- c(runSE, runPE)
         return(run)               
