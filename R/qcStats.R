@@ -19,18 +19,21 @@ summariseFilteringStats <- function(x){
         mean_reads<-mean(stats$readsOut)
         median_reads<-median(stats$readsOut)
         
-        barplot(height = stats[, c("readsOut")],
-                #border=NA,
+        stats$diff <- stats$readsIn - stats$readsOut
+        nrReadsOut <- t(stats[, c("readsOut", "diff")])
+        
+        barplot(height = nrReadsOut[c("readsOut", "diff"),],
                 axes = TRUE, cex.names = 0.65, 
                 xlab = "Sample", ylab = "Nr. reads", las = 2, names.arg = gsub(".fastq.gz", "",  rownames(stats)),
-                ylim = c(0, 1.1 * max(stats[,"readsOut"])),
-                main = "Number of reads output per sample", col = "yellow")
-        abline(h = median_reads, col="red",lwd =2, lty = 5)
+                ylim = c(0, 1.1 * max(stats[,"readsIn"])),
+                main = "Number of reads output per sample", col = c("orange", "yellow"))
+        abline(h = median_reads, col="blue",lwd =2, lty = 5)
         abline(h = mean_reads, col="black",lwd =2, lty = 2)
-        legend(legend = c("median", "mean"), lty = c(6,2,1), lwd=2, 
-               col = c("red","black"),"bottomright")
+        legend(legend = c("Reads in", "Reads out", "median output", "mean output"), lty = c(1,1, 5,2) , lwd=c(5,5,2,2), 
+               col = c("yellow", "orange", "blue","black"),"bottomright")
         
         # stacked bar plot of percentages of reads in, reads out, reads trimmed
+        
         statsPercent <- stats[, c("readsIn", "filterN", "filterQ", "filterMinLen", "trim", "fullLengthReadsOut", "unmatchedPair")]
         statsPercent[is.na(statsPercent)] <- 0
         statsPercent <- apply(statsPercent,1,function(x) 
