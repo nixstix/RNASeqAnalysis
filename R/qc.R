@@ -28,7 +28,6 @@ filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8,
         dataFile2 <- dataFile[ which( dataFile$PE == "PE" & grepl("_2.fastq.gz", dataFile$FILE)) , ]
         dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
         dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
-        print(dataFilePE)
         
         # ADD EXCEPTION IF DF IS EMPTY
         runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)

@@ -9,8 +9,8 @@
 summariseFilteringStats <- function(x){
         
         # summarise stats into table
-        stats <- do.call(rbind, lapply(x, attr, "filter"))
-        rownames(stats) <- do.call(rbind, lapply(x, attr, "inputFile"))
+        attr(x = a,"names") <- NULL
+        stats <- do.call(rbind, x)
         
         # prepare PDF for writing
         pdf(file = "./Barplots_filtering_stats.pdf",paper = "a4r",bg = "white")
@@ -18,32 +18,30 @@ summariseFilteringStats <- function(x){
         # bar plot of absolute number of reads output
         mean_reads<-mean(stats$readsOut)
         median_reads<-median(stats$readsOut)
-        statsMat <- as.matrix(t(stats))
-        print(max(statsMat["readsOut", ]))
-        #barplot(height = statsMat[5,], 
-        barplot(height = statsMat["readsOut", ],
-                border=NA,
+        
+        barplot(height = stats[, c("readsOut")],
+                #border=NA,
                 axes = TRUE, cex.names = 0.65, 
-                xlab = "Sample", ylab = "Nr. reads", las = 2,
-                ylim = c(0, 1.1 * max(statsMat["readsOut", ])),
-                main = "Number of reads output per sample", col = "blue")
+                xlab = "Sample", ylab = "Nr. reads", las = 2, names.arg = gsub(".fastq.gz", "",  rownames(stats)),
+                ylim = c(0, 1.1 * max(stats[,"readsOut"])),
+                main = "Number of reads output per sample", col = "yellow")
         abline(h = median_reads, col="red",lwd =2, lty = 5)
         abline(h = mean_reads, col="black",lwd =2, lty = 2)
         legend(legend = c("median", "mean"), lty = c(6,2,1), lwd=2, 
                col = c("red","black"),"bottomright")
         
         # stacked bar plot of percentages of reads in, reads out, reads trimmed
-                
-        statsPercent <- stats[, c("readsIn", "filterN", "filterQ", "filterMinLen", "trim", "fullLengthReadsOut")]
+        statsPercent <- stats[, c("readsIn", "filterN", "filterQ", "filterMinLen", "trim", "fullLengthReadsOut", "unmatchedPair")]
+        statsPercent[is.na(statsPercent)] <- 0
         statsPercent <- apply(statsPercent,1,function(x) 
-                x[2:6] / x[1] )
-        statsPercent <- statsPercent[c(5,4,3,2,1), ]
+                x[2:7] / x[1] )
+        statsPercent <- statsPercent[c(5,4,3,2,1,6), ]
         
         barplot(height = statsPercent, 
                 border = NA, axes = TRUE, las = 2, cex.names = 0.65, cex.axis = 0.8,
                 xlab = "Sample", ylab = "Proportion of reads",
-                main = "Filtering by sample", col = c("darkgreen", "green", "red", "darkred", "indianred"))
-        legend(legend = rev(c("Intact reads","trimmed for trailing quality or trailing N", "removed for length", "removed for quality", "removed for N")),pch = 15, col = rev(c("darkgreen", "green", "red", "darkred", "indianred")), "bottomright")
+                main = "Filtering by sample", col = c("darkgreen", "green", "red", "darkred", "indianred",  "lightpink"))
+        legend(legend = rev(c("Intact reads","trimmed for trailing quality or trailing N", "removed for length", "removed for quality", "removed for N", "removed for pair mismatch")),pch = 15, col = rev(c("darkgreen", "green", "red", "darkred", "indianred", "lightpink")), "bottomright")
         
         print("A barplot of results has been saved to Barplots_filtering_stats.pdf")
         
