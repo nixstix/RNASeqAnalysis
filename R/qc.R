@@ -21,138 +21,184 @@
 #' @export
 #' @import ShortRead
 filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
-
-        run <- mapply(filterAndTrim, dataFile$FILE, dataFile$FILTEREDFILE, dataFile$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
-
+        dataFileSE <- dataFile[dataFile$PE == "SE", ]
+        
+        dataFile1 <- dataFile[ which( dataFile$PE == "PE" & grepl("_1.fastq.gz", dataFile$FILE)) , ]
+        dataFile1$ID <- gsub("_1.fastq.gz", "", dataFile1$FILE)
+        dataFile2 <- dataFile[ which( dataFile$PE == "PE" & grepl("_2.fastq.gz", dataFile$FILE)) , ]
+        dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
+        dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
+        print(dataFilePE)
+        
+        # ADD EXCEPTION IF DF IS EMPTY
+        runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
+        #print(runSE)
+        
+        runPE <- mapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F)
+        #print(runPE)
+        
+        run <- c(runSE, runPE)
         return(run)               
 } 
 
 # private function
-filterAndTrim <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+        cat("Filtering: ", file, "\n", sep = " ")
+        # open input stream
+        stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
+        on.exit(close(stream1))
         
-        if(PE == "SE"){
+        # define variables
+        N_reads_in <- N_filt_reads <- Q_filt_reads <- minLenFqa <- N_reads_out <- N_trim <- 0L
+        
+        repeat {
+                # input chunk
+                fq1 <- yield(stream1)
+                fq1Len<-length(fq1)
+                if (fq1Len == 0)
+                        break
                 
-                # open input stream
-                stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
-                on.exit(close(stream1))
+                # count number and length of reads in
+                N_reads_in<-N_reads_in+fq1Len
+                init_length <-max(width(fq1))
                 
-                destination <- as.character(destination)
+                #trim leading/trailing N
+                pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
+                fqa<-narrow(fq1, start(pos_1), end(pos_1))
                 
-                # define variables
-                N_reads_in <- N_filt_reads <- Q_filt_reads <- minLenFqa <- N_reads_out <- N_trim <- 0L
-                
-                repeat {
-                        # input chunk
-                        fq1 <- yield(stream1)
-                        fq1Len<-length(fq1)
-                        if (fq1Len == 0)
-                                break
-                        
-                        # count number and length of reads in
-                        N_reads_in<-N_reads_in+fq1Len
-                        init_length <-max(width(fq1))
-                        
-                        #trim leading/trailing N
-                        pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
-                        fqa<-narrow(fq1, start(pos_1), end(pos_1))
-                        
-                        # drop reads containing N
-                        failed_N_1<-nFilter()(fqa)
-                        toTrash_1<-which(failed_N_1@.Data==F)
-                        N_filt_reads<-N_filt_reads+length(toTrash_1)
-                        if(N_filt_reads>0) {
-                                fqa<-fqa[-toTrash_1]
-                        }
-                        
-                        # trim as soon as 2 of 5 nucleotides has quality encoding less than phred score tres
-                        #determine quality ascii character for trimming
-                        treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
-                        fqa <- trimTailw(fqa, 2, treschar, 2)
-                        Q_filt_reads <- Q_filt_reads + N_reads_in - N_filt_reads - length(fqa)
-                        
-                        # drop reads that are less than x nt
-                        minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
-                        fqa <- fqa[width(fqa) >= minlength]
-                        
-                        N_reads_out <- N_reads_out+length(fqa)
-                        
-                        # calculate how many reads have been trimmed
-                        N_trim <- N_trim + length(fqa[which(width(fqa) < init_length)])
-                        fullLengthReadsOut <- N_reads_out - N_trim
-                        
-                        writeFastq(object = fqa, file = destination, mode = "a",compress = T)
+                # drop reads containing N
+                failed_N_1<-nFilter()(fqa)
+                toTrash_1<-which(failed_N_1@.Data==F)
+                N_filt_reads<-N_filt_reads+length(toTrash_1)
+                if(N_filt_reads>0) {
+                        fqa<-fqa[-toTrash_1]
                 }
                 
-                # collect results into one object
-                attr(file, "inputFile") <- file
-                attr(file, "outputFile") <- destination
+                # trim as soon as 2 of 5 nucleotides has quality encoding less than phred score tres
+                #determine quality ascii character for trimming
+                treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
+                fqa <- trimTailw(fqa, 2, treschar, 2)
+                Q_filt_reads <- Q_filt_reads + N_reads_in - N_filt_reads - length(fqa)
                 
-                attr(file, "filter") <-
-                        data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterQ = Q_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut)
-                class(file) <- "QualityFilterResults"
+                # drop reads that are less than x nt
+                minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
+                fqa <- fqa[width(fqa) >= minlength]
+                
+                N_reads_out <- N_reads_out+length(fqa)
+                
+                # calculate how many reads have been trimmed
+                N_trim <- N_trim + length(fqa[which(width(fqa) < init_length)])
+                fullLengthReadsOut <- N_reads_out - N_trim
+                writeFastq(object = fqa, file = destination, mode = "a",compress = T)
         }
         
-        if(PE == "PE"){
+        # collect results into one object
+        df <- data.frame(filtFile = destination, readsIn = N_reads_in, filterN = N_filt_reads, filterQ = Q_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut, unmatchedPair = NA)
+        rownames(df) <- file
+        return(df)
+        
+}
+
+# private function
+filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+        
+        cat("Filtering: ", file, file2, "\n", sep = " ")
+        
+        # halve read size to allow 2 chunks to open at the same time
+        blockSize <- blockSize/2
+        readerBlockSize <- blockSize/2
+        
+        # open input stream
+        stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
+        on.exit(close(stream1))
+        stream2 <- FastqStreamer(file2, n = blockSize, readerBlockSize = readerBlockSize)
+        on.exit(close(stream2))
+        
+        # define variables
+        N_reads_in <- N_filt_reads <- Q_filt_reads <- minLenFqa <- N_reads_out <- N_trim <- prRemoval <- 0L
+        N_reads_in2 <- N_filt_reads2 <- Q_filt_reads2 <- minLenFqb <- N_reads_out2 <- N_trim2 <- prRemoval2 <- 0L
+        
+        repeat {
+                # input chunk
+                fq1 <- yield(stream1)
+                fq1Len<-length(fq1)
+                if (fq1Len == 0)
+                        break
+                fq2 <- yield(stream2)
+                fq2Len<-length(fq2)
+                if (fq2Len == 0)
+                        break
                 
-                # open input stream
-                stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
-                on.exit(close(stream1))
+                # count number and length of reads in
+                N_reads_in<-N_reads_in+fq1Len
+                init_length <-max(width(fq1))
+                N_reads_in2<-N_reads_in2+fq2Len
+                init_length2 <-max(width(fq2))
                 
-                destination <- as.character(destination)
+                #trim leading/trailing N
+                pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
+                fqa<-narrow(fq1, start(pos_1), end(pos_1))
+                pos_2<- trimEnds(sread(fq2), "N", relation="==", ranges=T)
+                fqb<-narrow(fq2, start(pos_2), end(pos_2))
                 
-                # define variables
-                N_reads_in <- N_filt_reads <- Q_filt_reads <- minLenFqa <- N_reads_out <- N_trim <- 0L
-                
-                repeat {
-                        # input chunk
-                        fq1 <- yield(stream1)
-                        fq1Len<-length(fq1)
-                        if (fq1Len == 0)
-                                break
-                        
-                        # count number and length of reads in
-                        N_reads_in<-N_reads_in+fq1Len
-                        init_length <-max(width(fq1))
-                        
-                        #trim leading/trailing N
-                        pos_1 <- trimEnds(sread(fq1), "N", relation="==", ranges=T)
-                        fqa<-narrow(fq1, start(pos_1), end(pos_1))
-                        
-                        # drop reads containing N
-                        failed_N_1<-nFilter()(fqa)
-                        toTrash_1<-which(failed_N_1@.Data==F)
-                        N_filt_reads<-N_filt_reads+length(toTrash_1)
-                        if(N_filt_reads>0) {
-                                fqa<-fqa[-toTrash_1]
-                        }
-                        
-                        # trim as soon as 2 of 5 nucleotides has quality encoding less than phred score tres
-                        #determine quality ascii character for trimming
-                        treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
-                        fqa <- trimTailw(fqa, 2, treschar, 2)
-                        Q_filt_reads <- Q_filt_reads + N_reads_in - N_filt_reads - length(fqa)
-                        
-                        # drop reads that are less than x nt
-                        minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
-                        fqa <- fqa[width(fqa) >= minlength]
-                        
-                        N_reads_out <- N_reads_out+length(fqa)
-                        
-                        # calculate how many reads have been trimmed
-                        N_trim <- N_trim + length(fqa[which(width(fqa) < init_length)])
-                        fullLengthReadsOut <- N_reads_out - N_trim
-                        
-                        writeFastq(object = fqa, file = destination, mode = "a",compress = T)
+                # drop reads containing N
+                failed_N_1<-nFilter()(fqa)
+                toTrash_1<-which(failed_N_1@.Data==F)
+                N_filt_reads<-N_filt_reads+length(toTrash_1)
+                if(N_filt_reads>0) {
+                        fqa<-fqa[-toTrash_1]
+                }
+                failed_N_2<-nFilter()(fqb)
+                toTrash_2<-which(failed_N_2@.Data==F)
+                N_filt_reads2<-N_filt_reads2+length(toTrash_2)
+                if(N_filt_reads2>0) {
+                        fqb<-fqb[-toTrash_2]
                 }
                 
-                # collect results into one object
-                attr(file, "inputFile") <- file
-                attr(file, "outputFile") <- destination
+                # trim as soon as 2 of 5 nucleotides has quality encoding less than phred score tres
+                #determine quality ascii character for trimming
+                treschar<-names(encoding(quality(fq1))[which(encoding(quality(fq1))==Phred)])
+                fqa <- trimTailw(fqa, 2, treschar, 2)
+                fqb <- trimTailw(fqb, 2, treschar, 2)
                 
-                attr(file, "filter") <-
-                        data.frame(readsIn = N_reads_in, filterN = N_filt_reads, filterQ = Q_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut)
-                class(file) <- "QualityFilterResults"
+                # CHECK THESE STATS COLLECTION LINES
+                Q_filt_reads <- Q_filt_reads + N_reads_in - N_filt_reads - length(fqa)
+                Q_filt_reads2 <- Q_filt_reads2 + N_reads_in2 - N_filt_reads2 - length(fqb)
+                
+                # drop reads that are less than x nt
+                minLenFqa <- minLenFqa + length(fqa[width(fqa) < minlength])
+                fqa <- fqa[width(fqa) >= minlength]
+                minLenFqb <- minLenFqb + length(fqb[width(fqb) < minlength])
+                fqb <- fqb[width(fqb) >= minlength]
+                
+                # ensure pair integrity is maintained
+                #remove in paired reads  
+                id_toKeep <- gsub(pattern = "/2",replacement = "/1",x = as.character(fqb@id))
+                prRemoval <- prRemoval + length(fqa) - length(fqa[which(as.character(fqa@id) %in% id_toKeep)])#convert reads names to remove paired reads in other file (change trailing "/2" by "/1")
+                fqa <- fqa[which(as.character(fqa@id) %in% id_toKeep)]
+                id_toKeep <- gsub(pattern = "/1",replacement = "/2",x = as.character(fqa@id)) #convert reads names to remove paired reads in other file (change trailing "/1" to "/2")
+                prRemoval2 <- prRemoval2 + length(fqb) - length(fqb[which(as.character(fqb@id) %in% id_toKeep)]) 
+                fqb <- fqb[which(as.character(fqb@id) %in% id_toKeep)]
+                
+                # calculate number of reads output
+                N_reads_out <- N_reads_out+length(fqa)
+                N_reads_out2 <- N_reads_out2+length(fqb)
+                
+                # calculate how many reads have been trimmed
+                N_trim <- N_trim + length(fqa[which(width(fqa) < init_length)])
+                fullLengthReadsOut <- N_reads_out - N_trim
+                N_trim2 <- N_trim2 + length(fqb[which(width(fqb) < init_length2)])
+                fullLengthReadsOut2 <- N_reads_out2 - N_trim2
+                
+                writeFastq(object = fqa, file = destination, mode = "a",compress = T)
+                writeFastq(object = fqb, file = destination2, mode = "a",compress = T)
         }
         
-        return(file)
+        # collect results into one object
+        df1 <- data.frame(filtFile = destination, readsIn = N_reads_in, filterN = N_filt_reads, filterQ = Q_filt_reads, filterMinLen = minLenFqa,  readsOut = N_reads_out, trim = N_trim, fullLengthReadsOut = fullLengthReadsOut, unmatchedPair = prRemoval)        
+        df2 <- data.frame(filtFile = destination2, readsIn = N_reads_in2, filterN = N_filt_reads2, filterQ = Q_filt_reads2, filterMinLen = minLenFqb,  readsOut = N_reads_out2, trim = N_trim2, fullLengthReadsOut = fullLengthReadsOut2, unmatchedPair = prRemoval2)
+        
+        df <- rbind(df1,df2)
+        rownames(df) <- c(file, file2)
+        return(df)
 }
