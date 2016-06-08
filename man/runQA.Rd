@@ -12,7 +12,7 @@ runQA(dataFile, preFilter = TRUE)
 \item{preFilter}{A logical - if true (default), the function will select and analyse files which have not yet been processed for quality. If false, the function will select and analyse those files which have been processed for quality, i.e. the "filtered file" in the data file.}
 }
 \value{
-Outputs directories with quality results in the form of raw data and HTLM format
+FastqQA object. Outputs quality results in the form of raw data (an R FastqQA object) and HTML format (saved to "QA" directory).
 }
 \description{
 The function checks each fastq file specified in the "data file" for quality, and writes findings to a report.
