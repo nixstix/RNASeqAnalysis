@@ -16,14 +16,14 @@ runQA <- function(dataFile, preFilter = TRUE){
         if (preFilter == TRUE){ 
                 # pre-filter quality check
                 QASum_filter <- qa(dirPath = dataFile$FILE, type = "fastq")
-                QASum_prefilterRpt <- report(x = QASum_prefilter, dest = "QA/prefilter", type = "html")
+                QASum_prefilterRpt <- report(x = QASum_filter, dest = "QA/prefilter", type = "html")
                 save(QASum_prefilter, file = "./QA/prefilter/QASum_prefilter.RData")
         } 
         
         else if(preFilter == FALSE){
                 # pre-filter quality check
                 QASum_filter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq")
-                QASum_postfilterRpt <- report(x = QASum_postfilter, dest = "QA/postfilter/", type = "html")
+                QASum_postfilterRpt <- report(x = QASum_filter, dest = "QA/postfilter/", type = "html")
                 save(QASum_postfilter, file = "./QA/postfilter/QASum_postfilter.RData")        
         }
         return(QASum_filter)
