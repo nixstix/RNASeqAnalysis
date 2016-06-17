@@ -43,7 +43,12 @@ checkDataFile <- function(x){
         # check all files mentioned exist in the directory
         cat(" Checking for any files missing from the directory (this data will be REMOVED from the data set):", "\n")
         print(x[!file.exists(as.character(x$FILE)), ])
-        x <- x[file.exists(as.character(x$FILE)), ]
+        if(nrow(x[file.exists(as.character(x$FILE)), ]) == 0){
+                stop("No files mentioned in your data file exist in the directory", call. = TRUE)
+        } 
+        else {
+                x <- x[file.exists(as.character(x$FILE)), ]
+        }
         
         # replace blank cells with NA
         x[x == ""] <- NA
