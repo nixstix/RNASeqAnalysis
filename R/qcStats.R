@@ -9,11 +9,11 @@
 summariseFilteringStats <- function(x){
         
         # summarise stats into table
-        attr(x = a,"names") <- NULL
+        attr(x,"names") <- NULL
         stats <- do.call(rbind, x)
         
         # prepare PDF for writing
-        pdf(file = "./Barplots_filtering_stats.pdf",paper = "a4r",bg = "white")
+        pdf(file = "./Barplots_filtering_stats.pdf", paper = "a4r", bg = "white")
         
         # bar plot of absolute number of reads output
         mean_reads<-mean(stats$readsOut)
@@ -42,7 +42,7 @@ summariseFilteringStats <- function(x){
         
         barplot(height = statsPercent, 
                 border = NA, axes = TRUE, las = 2, cex.names = 0.65, cex.axis = 0.8,
-                xlab = "Sample", ylab = "Proportion of reads",
+                xlab = "Sample", ylab = "Proportion of reads", names.arg = gsub(".fastq.gz", "",  rownames(stats)),
                 main = "Filtering by sample", col = c("darkgreen", "green", "red", "darkred", "indianred",  "lightpink"))
         legend(legend = rev(c("Intact reads","trimmed for trailing quality or trailing N", "removed for length", "removed for quality", "removed for N", "removed for pair mismatch")),pch = 15, col = rev(c("darkgreen", "green", "red", "darkred", "indianred", "lightpink")), "bottomright")
         
