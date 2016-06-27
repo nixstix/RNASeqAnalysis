@@ -54,6 +54,10 @@ checkDataFile <- function(x){
         x[x == ""] <- NA
         x[x == " "] <- NA
         
+        # replace NA cells in "Filtered file" with generic name
+        cat("Replacing blank cells in 'filtered file' column with generic names: ", "\n" )
+        x$FILTEREDFILE <- apply(x, 1, replFiltfile)
+        
         return(x)
 }
 
@@ -85,4 +89,15 @@ checkColHeadings <- function(x){
         cat(" All columns are correctly named", "\n\n")
         
         return(x)
+}
+
+#private function
+replFiltfile <- function(a){
+        if(is.na(a["FILTEREDFILE"])){
+                a <- paste("filt", a["FILE"], sep = ".")
+        }
+        else{
+                a <- a["FILTEREDFILE"]
+        }
+        
 }
