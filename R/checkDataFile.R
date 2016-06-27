@@ -1,8 +1,13 @@
 #' Checks that the format of the "data file" (which is used as input in many functions) is correct.
-#' @description The function takes as input a data file (see \code{datafileTemplate}), and checks whether it is in a format acceptable to be used as input to other functions.
+#' @description The function takes as input a data file (see \code{\link{datafileTemplate}}), and checks whether it is in a format acceptable to be used as input to other functions.
 #' @param x. A data frame containing: the name of the file to be processed, whether it is single or paried-end data, the sample and replicate ID, and (optional) the name of an output file which results from the \code{runQAandFilter} function will be written to.
 #' @return A data frame which has been modified - the column names and classes have been verified (and corrected if necessary), all white space has been removed, observations relating to files which do not exist in the directory have been removed. The function also prints out any duplicated files - these should be removed by the user to prevent complications downstream.
-#' @seealso \code{datafileTemplate}
+#' @seealso \code{\link{datafileTemplate}}
+#' @examples 
+#' dirPath <- system.file("extdata", "RNA-Seq-data", package = "RNASeqAnalysis")
+#' setwd(dirPath)
+#' dataF <- read.csv("data3.csv")
+#' checkDataFile(dataF)
 #' @export 
 checkDataFile <- function(x){
         
