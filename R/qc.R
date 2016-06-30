@@ -21,13 +21,9 @@
 #' @export
 #' @import ShortRead
 filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
-        dataFileSE <- dataFile[dataFile$PE == "SE", ]
         
-        dataFile1 <- dataFile[ which( dataFile$PE == "PE" & grepl("_1.fastq.gz", dataFile$FILE)) , ]
-        dataFile1$ID <- gsub("_1.fastq.gz", "", dataFile1$FILE)
-        dataFile2 <- dataFile[ which( dataFile$PE == "PE" & grepl("_2.fastq.gz", dataFile$FILE)) , ]
-        dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
-        dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
+        dataFileSE <- dataFileSE(dataFile)
+        dataFilePE <- datafilePE(dataFile)
         
         if(nrow(dataFileSE) > 0) {
                 runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F) 
@@ -207,3 +203,18 @@ filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlengt
         rownames(df) <- c(file, file2)
         return(df)
 }
+
+#private function
+dataFileSE <- function(dataFile){
+        dataFile[dataFile$PE == "SE", ]
+        return (dataFile)
+} 
+        
+dataFilePE <- function(dataFile){
+        dataFile1 <- dataFile[ which( dataFile$PE == "PE" & grepl("_1.fastq.gz", dataFile$FILE)) , ]
+        dataFile1$ID <- gsub("_1.fastq.gz", "", dataFile1$FILE)
+        dataFile2 <- dataFile[ which( dataFile$PE == "PE" & grepl("_2.fastq.gz", dataFile$FILE)) , ]
+        dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
+        dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
+}
+
