@@ -10,13 +10,19 @@
 #' Quality reports are output to the working directory (under the QA directory). R objects of the raw data used to generate the reports are also saved to this directory. 
 #' @export
 #' @import ShortRead
-runQA <- function(dataFile, preFilter = TRUE){
+runQA <- function(dataFile, preFilter = TRUE, mc.cores){
+        
+        if(!missing(mc.cores)){
+                BPPARAM = MulticoreParam(workers = mc.cores)
+                }
+        
+        
         print("QA results will be output to the 'QA' folder")
         
         if (preFilter == TRUE){ 
                 # pre-filter quality check
                 print("QA on pre-filtered files")
-                QASum_filter <- qa(dirPath = dataFile$FILE, type = "fastq")
+                QASum_filter <- qa(dirPath = dataFile$FILE, type = "fastq", BPPARAM = BPPARAM)
                 print("QA on pre-filtered files completed")
                 QASum_prefilterRpt <- report(x = QASum_filter, dest = "QA/prefilter", type = "html")
                 print("QA report and data are now available in the 'QA' folder")
@@ -26,7 +32,7 @@ runQA <- function(dataFile, preFilter = TRUE){
         else if(preFilter == FALSE){
                 # post-filter quality check
                 print("QA on post-filtered files")
-                QASum_filter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq")
+                QASum_filter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq", BPPARAM = BPPARAM)
                 print("QA on post-filtered files completed")
                 QASum_postfilterRpt <- report(x = QASum_filter, dest = "QA/postfilter/", type = "html")
                 print("QA report and data are now available in the 'QA' folder")
