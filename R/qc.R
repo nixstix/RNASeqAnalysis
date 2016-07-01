@@ -20,19 +20,19 @@
 #' A new R object (\code{QualityFilterResults}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed. 
 #' @export
 #' @import ShortRead
-filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5){
+filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5, mc.cores = getOption("mc.cores", 2L)){
         
         dataFileSE <- dataFileSE(dataFile)
-        dataFilePE <- datafilePE(dataFile)
+        dataFilePE <- dataFilePE(dataFile)
         
         if(nrow(dataFileSE) > 0) {
-                runSE <- mapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F) 
+                runSE <- mcmapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores) 
         } else {
                 runSE <- NULL
         }
         
         if(nrow(dataFilePE) > 0) {
-                runPE <- mapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F) }
+                runPE <- mcmapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores) }
         else{
                 runPE <- NULL
         }
@@ -43,7 +43,7 @@ filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8,
 } 
 
 # private function
-filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores){
         cat("Filtering: ", file, "\n", sep = " ")
         # open input stream
         stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
@@ -101,7 +101,7 @@ filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred 
 }
 
 # private function
-filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize){
+filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores){
         
         cat("Filtering: ", file, file2, "\n", sep = " ")
         
@@ -207,9 +207,9 @@ filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlengt
 #private function
 dataFileSE <- function(dataFile){
         dataFile[dataFile$PE == "SE", ]
-        return (dataFile)
 } 
-        
+
+#private function        
 dataFilePE <- function(dataFile){
         dataFile1 <- dataFile[ which( dataFile$PE == "PE" & grepl("_1.fastq.gz", dataFile$FILE)) , ]
         dataFile1$ID <- gsub("_1.fastq.gz", "", dataFile1$FILE)
@@ -217,4 +217,3 @@ dataFilePE <- function(dataFile){
         dataFile2$ID <- gsub("_2.fastq.gz", "", dataFile2$FILE)
         dataFilePE <- merge(dataFile1, dataFile2, by = "ID")
 }
-
