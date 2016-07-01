@@ -10,7 +10,13 @@
 #' Quality reports are output to the working directory (under the QA directory). R objects of the raw data used to generate the reports are also saved to this directory. 
 #' @export
 #' @import ShortRead
-runQA <- function(dataFile, preFilter = TRUE){
+runQA <- function(dataFile, preFilter = TRUE, mc.cores){
+        
+        if(!missing(mc.cores)){
+                BPPARAM = MulticoreParam(workers = mc.cores)
+                }
+        
+        
         print("QA results will be output to the 'QA' folder")
         
         if (preFilter == TRUE){ 
