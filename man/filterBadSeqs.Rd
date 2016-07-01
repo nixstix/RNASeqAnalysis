@@ -5,7 +5,7 @@
 \title{Performs quality checks, then filters reads for quality}
 \usage{
 filterBadSeqs(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
-  readerBlockSize = 1e+05)
+  readerBlockSize = 1e+05, mc.cores = 1)
 }
 \arguments{
 \item{dataFile}{An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}.}
@@ -13,6 +13,8 @@ filterBadSeqs(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
 \item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.}
 
 \item{blockSize}{An integer which specifies the number of reads to be read at a time when processing. Default is 1e8.}
+
+\item{mc.cores}{The number of cores to use when paralleling. Default is 1 (i.e. no parallelisation)}
 
 \item{minLength}{An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.}
 

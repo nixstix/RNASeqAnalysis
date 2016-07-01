@@ -7,6 +7,7 @@
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.
 #' @param blockSize An integer which specifies the number of reads to be read at a time when processing. Default is 1e8. 
 #' @param readBlockSize An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.
+#' @param mc.cores The number of cores to use when paralleling. Default is 1 (i.e. no parallelisation)
 #' @return An object of class \code{QualityFilterResults}.  
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
 #' @seealso \code{ShortRead} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
@@ -20,19 +21,19 @@
 #' A new R object (\code{QualityFilterResults}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed. 
 #' @export
 #' @import ShortRead
-filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5, mc.cores = getOption("mc.cores", 2L)){
+filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5, mc.cores = 1){
         
         dataFileSE <- dataFileSE(dataFile)
         dataFilePE <- dataFilePE(dataFile)
         
         if(nrow(dataFileSE) > 0) {
-                runSE <- mcmapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores) 
+                runSE <- mcmapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = F) 
         } else {
                 runSE <- NULL
         }
         
         if(nrow(dataFilePE) > 0) {
-                runPE <- mcmapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores) }
+                runPE <- mcmapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = F) }
         else{
                 runPE <- NULL
         }
@@ -43,7 +44,7 @@ filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8,
 } 
 
 # private function
-filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores){
+filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores, mc.preschedule = F){
         cat("Filtering: ", file, "\n", sep = " ")
         # open input stream
         stream1 <- FastqStreamer(file, n = blockSize, readerBlockSize = readerBlockSize)
@@ -101,7 +102,7 @@ filterAndTrimSE <- function(file, destination, PE, minlength = minlength, Phred 
 }
 
 # private function
-filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores){
+filterAndTrimPE <- function(file, file2, destination, destination2, PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, mc.cores = mc.cores, mc.preschedule = F){
         
         cat("Filtering: ", file, file2, "\n", sep = " ")
         
