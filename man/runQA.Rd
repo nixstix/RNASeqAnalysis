@@ -4,12 +4,14 @@
 \alias{runQA}
 \title{Performs quality checks}
 \usage{
-runQA(dataFile, preFilter = TRUE)
+runQA(dataFile, preFilter = TRUE, mc.cores = NULL)
 }
 \arguments{
 \item{dataFile}{An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}.}
 
 \item{preFilter}{A logical - if true (default), the function will select and analyse files which have not yet been processed for quality. If false, the function will select and analyse those files which have been processed for quality, i.e. the "filtered file" in the data file.}
+
+\item{mc.cores}{A number specifying the number of cores to be used during parallel processing.}
 }
 \value{
 FastqQA object. Outputs quality results in the form of raw data (an R FastqQA object) and HTML format (saved to "QA" directory).
