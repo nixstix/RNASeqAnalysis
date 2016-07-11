@@ -11,7 +11,7 @@ runQA(dataFile, preFilter = TRUE, mc.cores = NULL)
 
 \item{preFilter}{A logical - if true (default), the function will select and analyse files which have not yet been processed for quality. If false, the function will select and analyse those files which have been processed for quality, i.e. the "filtered file" in the data file.}
 
-\item{mc.cores}{A number specifying the number of cores to be used during parallel processing.}
+\item{mc.cores}{A number specifying the number of cores to be used during parallel processing. Default is null - this will result in the number of cores in the default back-end being used. See \code{\url{BioCParallel::registered}}.}
 }
 \value{
 FastqQA object. Outputs quality results in the form of raw data (an R FastqQA object) and HTML format (saved to "QA" directory).

@@ -4,7 +4,7 @@
 #' 
 #' @param dataFile An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}. 
 #' @param preFilter A logical - if true (default), the function will select and analyse files which have not yet been processed for quality. If false, the function will select and analyse those files which have been processed for quality, i.e. the "filtered file" in the data file.
-#' @param mc.cores A number specifying the number of cores to be used during parallel processing. 
+#' @param mc.cores A number specifying the number of cores to be used during parallel processing. Default is null - this will result in the number of cores in the default back-end being used. See \code{\url{BioCParallel::registered}}. 
 #' @return FastqQA object. Outputs quality results in the form of raw data (an R FastqQA object) and HTML format (saved to "QA" directory).
 #' @details The function should be run in the working directory, where all fastq files are found.
 #' @details \code{runQA} iterates over each file specified in the "datafile". It runs a quality assessment from the \code{ShortRead} package. The \code{ShortRead} package (\url{https://bioconductor.org/packages/release/bioc/html/ShortRead.html}) contains more information about this step. The quality assessment may be performed before and after the filtering step, by setting the "pre-filter" parameter to true or to false, respectively. All quality assessment data is output to the "QA" directory. 
@@ -13,11 +13,11 @@
 #' @import ShortRead
 runQA <- function(dataFile, preFilter = TRUE, mc.cores = NULL){
         
-        if(!missing(mc.cores)){
-                BPPARAM = MulticoreParam(workers = mc.cores)
+        if(is.null(mc.cores)){
+                BPPARAM = registered()[1]
         }
         else{
-                BPPARAM = registered()[1]
+                BPPARAM = MulticoreParam(workers = mc.cores)
         }
         
         print("QA results will be output to the 'QA' folder")
