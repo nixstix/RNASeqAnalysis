@@ -29,7 +29,8 @@ runQA <- function(dataFile, preFilter = TRUE, mc.cores = NULL){
                 print("QA on pre-filtered files completed")
                 QASum_prefilterRpt <- report(x = QASum_filter, dest = "QA/prefilter", type = "html")
                 print("QA report and data are now available in the 'QA' folder")
-                save(QASum_filter, file = "./QA/prefilter/QASum_prefilter.RData")
+                QASum_prefilter <- QASum_filter
+                save(QASum_prefilter, file = "./QA/prefilter/QASum_prefilter.RData")
         } 
         
         else if(preFilter == FALSE){
@@ -39,7 +40,8 @@ runQA <- function(dataFile, preFilter = TRUE, mc.cores = NULL){
                 print("QA on post-filtered files completed")
                 QASum_postfilterRpt <- report(x = QASum_filter, dest = "QA/postfilter/", type = "html")
                 print("QA report and data are now available in the 'QA' folder")
-                save(QASum_filter, file = "./QA/postfilter/QASum_postfilter.RData")        
+                QASum_postfilter <- QASum_filter
+                save(QASum_postfilter, file = "./QA/postfilter/QASum_postfilter.RData")        
         }
         return(QASum_filter)
 }
