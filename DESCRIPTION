@@ -1,12 +1,13 @@
 Package: RNASeqAnalysis
-Title: Analysis of RNA-Seq data: QC filtering, expression analysis (using Kallisto, Tophat), differential expression (using DESeq) 
-Version: 0.0.0.9000
+Title: Analysis of RNA-Seq data: QC filtering, expression analysis, differential expression pipeline. 
+Version: 1.0.0
 Authors@R: person("Nicky", "Thrupp", email = "nicky.thrupp@ucb.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: The package implements a pipeline for the analysis of RNA-Seq data. The pipeline is designed to simplify the analysis as much as possible, thus requiring minimal user input. 
 Depends:
     R (>= 3.2.1),
-    ShortRead
-License: What license is it under?
+    ShortRead,
+    lattice
+License: GPL-3
 LazyData: true
 RoxygenNote: 5.0.1
 Suggests: knitr, rmarkdown
