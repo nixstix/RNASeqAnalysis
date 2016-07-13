@@ -60,7 +60,7 @@ checkDataFile <- function(x){
         x[x == " "] <- NA
         
         # replace NA cells in "Filtered file" with generic name
-        cat("Replacing blank cells in 'filtered file' column with generic names: ", "\n" )
+        cat("\n", "Replacing blank cells in 'filtered file' column with generic names ", "\n" )
         x$FILTEREDFILE <- apply(x, 1, replFiltfile)
         
         return(x)
