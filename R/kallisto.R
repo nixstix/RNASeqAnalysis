@@ -41,7 +41,9 @@ kallistoIndex <- function(refTranscriptome, indexName="./transcripts.idx"){
 
 #Quantifies transcript expression
 #'
-#' Kallisto quantifies transcript abundance from RNA-Seq data. The data is broken down into k-mers and each k-mer is pseudoaligned to k-mers in the index. 
+#' Kallisto quantifies transcript abundance from RNA-Seq data. 
+#' 
+#' The data is broken down into k-mers and each k-mer is pseudoaligned to k-mers in the index.
 #' Because kallisto doesn't rely on full alignment, it is much quicker than other methods, without losing accuracy.
 #' @param file1 A character string of the name of the RNA-Seq data file (fastq.gz) to be processed.
 #' @param file2 A character string of the RNA-Seq data file (fastq.gz) to be processed - in the case there is paired-end data. 
@@ -94,7 +96,7 @@ kallistoQuant <- function(dataFile, preFilt = FALSE, refIndex, refIndexFromPacka
         })
 }
 
-#' private function
+# private function
 kallistoQuantRunSE <- function(cmd = cmd, preFilt = preFilt, prefilt = dataFileSE$FILE, postfilt = dataFileSE$FILTEREDFILE, fragmentLength = fragmentLength, fragmentSD = fragmentSD){
         
         if (preFilt == FALSE){
@@ -110,7 +112,7 @@ kallistoQuantRunSE <- function(cmd = cmd, preFilt = preFilt, prefilt = dataFileS
         system(cmd)
 }
 
-#' private function
+# private function
 kallistoQuantRunPE <- function(cmd = cmd, preFilt = preFilt, prefilt = dataFilePE$FILE.x, postfilt = dataFilePE$FILTEREDFILE.x, prefilt2 = dataFilePE$FILE.y, postfilt2 = dataFilePE$FILTEREDFILE.y){
         
         if (preFilt == FALSE){
@@ -129,9 +131,4 @@ kallistoQuantRunPE <- function(cmd = cmd, preFilt = preFilt, prefilt = dataFileP
 
 }
 
-# abundances <- paste(outfile, "abundance.tsv", sep="/")
-# if (!file.exists(abundances)){
-#                 stop("No output produced: check your Kallisto parameters")
-#         }
-# abundances <- read.table(file = abundances, header = TRUE, sep = "\t")
-# return(abundances)
+
