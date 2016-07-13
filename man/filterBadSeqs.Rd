@@ -8,7 +8,7 @@ filterBadSeqs(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
   readerBlockSize = 1e+05, mc.cores = 1)
 }
 \arguments{
-\item{dataFile}{An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}.}
+\item{dataFile}{An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{\link{datafileTemplate}}.}
 
 \item{Phred}{An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.}
 
@@ -21,7 +21,7 @@ filterBadSeqs(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
 \item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
-An object of class \code{QualityFilterResults}.
+An object of class \code{\link{QualityFilterResults}}.
 }
 \description{
 The function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
@@ -29,7 +29,7 @@ The function trims poor-quality bases and unknown bases from the ends of the seq
 \details{
 The function should be run in the working directory, where all fastq files are found.
 
-\code{runQAandFilter} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{ShortRead} package.
+\code{\link{runQAandFilter}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.
 
 * it removes any trailing or leadining N's from each sequence,
 
@@ -40,11 +40,11 @@ The function should be run in the working directory, where all fastq files are f
 * it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
 
 The function produces a new set of fastq files which have been filtered. The user must specify in the "FILTEREDFILE" column of the data file the output file. The user may specify the same output file for multiple input files - this will append new output to existing files, thereby allowing de-multiplexing of samples which have been run on different lanes.   
-A new R object (\code{QualityFilterResults}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed.
+A new R object (\code{\link{QualityFilterResults}}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed.
 }
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
 
-\code{ShortRead} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
+\code{\link{ShortRead}} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
 }
 

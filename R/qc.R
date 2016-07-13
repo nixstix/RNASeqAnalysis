@@ -2,23 +2,23 @@
 #' 
 #' The function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
 #' 
-#' @param dataFile An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}. 
+#' @param dataFile An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{\link{datafileTemplate}}. 
 #' @param minLength An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.
 #' @param blockSize An integer which specifies the number of reads to be read at a time when processing. Default is 1e8. 
 #' @param readBlockSize An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.
 #' @param mc.cores The number of cores to use when paralleling. Default is 1 (i.e. no parallelisation)
-#' @return An object of class \code{QualityFilterResults}.  
+#' @return An object of class \code{\link{QualityFilterResults}}.  
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
-#' @seealso \code{ShortRead} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
+#' @seealso \code{\link{ShortRead}} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
 #' @details The function should be run in the working directory, where all fastq files are found.
-#' @details \code{runQAandFilter} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{ShortRead} package.  
+#' @details \code{\link{runQAandFilter}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.  
 #' @details * it removes any trailing or leadining N's from each sequence,
 #' @details * it removes any reads wich still contain N's,
 #' @details * it trims the trailing end when it finds a minimum of 2 poor-quality bases in a window of 5. The threshold for poor quality is determined by the parameter "Phred", where the Phred score is logarithmically related to the probability of errors at each base,
 #' @details * it removes any reads shorter than a minimum length (this is specified by the "minLength" parameter).
 #' @details The function produces a new set of fastq files which have been filtered. The user must specify in the "FILTEREDFILE" column of the data file the output file. The user may specify the same output file for multiple input files - this will append new output to existing files, thereby allowing de-multiplexing of samples which have been run on different lanes.   
-#' A new R object (\code{QualityFilterResults}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed. 
+#' A new R object (\code{\link{QualityFilterResults}}) is created, which contains pointers to the input and output fastq files, as well as a summary of how many reads have been trimmed or removed. 
 #' @export
 #' @import ShortRead
 filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8, readerBlockSize = 1e5, mc.cores = 1){
