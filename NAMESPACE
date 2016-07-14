@@ -2,6 +2,7 @@
 
 export(availableReferences)
 export(checkDataFile)
+export(collectKallistoCounts)
 export(compareQA)
 export(filterBadSeqs)
 export(kallistoIndex)
