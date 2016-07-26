@@ -6,7 +6,7 @@
 #' @export
 collectKallistoCounts <- function(baseDir = "./kallistoResults"){
         sample_id <- dir(baseDir)        
-        consolData <- lapply(sample_id, consolidateData) 
+        consolData <- lapply(sample_id, consolidateData, baseDir) 
         kallistoRes <- do.call(cbind, consolData)
         return(as.matrix(kallistoRes))
 }
@@ -52,7 +52,7 @@ addKallistoResToTable <- function(dataFile, countDat){
 }
 
 # private function
-consolidateData <- function(sample_id){
+consolidateData <- function(sample_id, baseDir){
         baseDir <- "./kallistoResults"
         abundanceFile <- paste(baseDir, sample_id, "abundance.tsv", sep="/")
         abundance <- read.csv(abundanceFile, sep = "\t", row.names = "target_id")
