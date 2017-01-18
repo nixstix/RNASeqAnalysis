@@ -7,12 +7,12 @@
 #' @param Phred An integer which specifies Phred (ascii) quality score. Any two consecutive nucleotides with a quality score lower than this threshold will be discarded. Default score is 30.
 #' @param blockSize An integer which specifies the number of reads to be read at a time when processing. Default is 1e8. 
 #' @param readBlockSize An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.
-#' @param mc.cores The number of cores to use when paralleling. Default is 1 (i.e. no parallelisation)
-#' @return An object of class \code{\link{QualityFilterResults}}.  
+#' @param mc.cores The number of cores to use when parallelizing. Default is 1 (i.e. no parallelisation)
+#' @return A data frame summarising for each file how many sequences have been trimmed or removed.  
 #' @seealso \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores. 
-#' @seealso \code{\link{ShortRead}} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
+#' @seealso \code{\link{ShortRead}} for more information about \code{blockSize} (n) and \code{readerBlockSize}.
 #' @details The function should be run in the working directory, where all fastq files are found.
-#' @details \code{\link{runQAandFilter}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.  
+#' @details \code{\link{filterBadSeqs}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.  
 #' @details * it removes any trailing or leadining N's from each sequence,
 #' @details * it removes any reads wich still contain N's,
 #' @details * it trims the trailing end when it finds a minimum of 2 poor-quality bases in a window of 5. The threshold for poor quality is determined by the parameter "Phred", where the Phred score is logarithmically related to the probability of errors at each base,

@@ -14,14 +14,14 @@ filterBadSeqs(dataFile, minlength = 30, Phred = 25, blockSize = 1e+08,
 
 \item{blockSize}{An integer which specifies the number of reads to be read at a time when processing. Default is 1e8.}
 
-\item{mc.cores}{The number of cores to use when paralleling. Default is 1 (i.e. no parallelisation)}
+\item{mc.cores}{The number of cores to use when parallelizing. Default is 1 (i.e. no parallelisation)}
 
 \item{minLength}{An integer which specifies the minimum length for a read. Reads shorter than this length will be discarded. Default is 30 nucleotides.}
 
 \item{readBlockSize}{An integer which specifies the number of bytes (characters) to be read at one time. Smaller \code{readBlockSize} reduces memory requirements, but is less efficient. Default is 1e5.}
 }
 \value{
-An object of class \code{\link{QualityFilterResults}}.
+A data frame summarising for each file how many sequences have been trimmed or removed.
 }
 \description{
 The function trims poor-quality bases and unknown bases from the ends of the sequences. Any reads which are too short, or contain any unknown bases (N), are removed from the file.
@@ -29,7 +29,7 @@ The function trims poor-quality bases and unknown bases from the ends of the seq
 \details{
 The function should be run in the working directory, where all fastq files are found.
 
-\code{\link{runQAandFilter}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.
+\code{\link{filterBadSeqs}} iterates over each file specified in the "datafile", and filters and trims the reads for quality. This is done by iterating over chunks of reads in the fastq files at a time. The size of the chunks are decided by the "blockSize" and "readerBlockSize" parameters. More information about how this is done is available in the \code{\link{ShortRead}} package.
 
 * it removes any trailing or leadining N's from each sequence,
 
@@ -45,6 +45,6 @@ A new R object (\code{\link{QualityFilterResults}}) is created, which contains p
 \seealso{
 \url{https://en.wikipedia.org/wiki/Phred_quality_score} for more about quality scores.
 
-\code{\link{ShortRead}} for more information about quality reports, \code{blockSize} (n) and \code{readerBlockSize}.
+\code{\link{ShortRead}} for more information about \code{blockSize} (n) and \code{readerBlockSize}.
 }
 
