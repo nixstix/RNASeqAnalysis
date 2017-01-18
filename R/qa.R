@@ -26,7 +26,7 @@ runQA <- function(dataFile, preFilter = TRUE){
         if (preFilter == TRUE){ 
                 # pre-filter quality check
                 print("QA on pre-filtered files")
-                QASum_filter <- qa(dirPath = dataFile$FILE, type = "fastq", BPPARAM=SerialParam())
+                QASum_filter <- qa(dirPath = dataFile$FILE, type = "fastq", BPPARAM=bpparam())
                 print("QA on pre-filtered files completed")
                 
                 QASum_prefilterRpt <- report(x = QASum_filter, dest = "QA/prefilter", type = "html")
@@ -38,7 +38,7 @@ runQA <- function(dataFile, preFilter = TRUE){
         else if(preFilter == FALSE){
                 # post-filter quality check
                 print("QA on post-filtered files")
-                QASum_filter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq", BPPARAM = SerialParam())
+                QASum_filter <- qa(dirPath = unique(dataFile$FILTEREDFILE), type = "fastq", BPPARAM = bpparam())
                 print("QA on post-filtered files completed")
                 QASum_postfilterRpt <- report(x = QASum_filter, dest = "QA/postfilter/", type = "html")
                 print("QA report and data are now available in the 'QA' folder")
