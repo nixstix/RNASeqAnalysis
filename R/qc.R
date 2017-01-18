@@ -27,13 +27,13 @@ filterBadSeqs <- function(dataFile, minlength = 30, Phred = 25, blockSize = 1e8,
         dataFilePE <- dataFilePE(dataFile)
         
         if(nrow(dataFileSE) > 0) {
-                runSE <- mcmapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = F) 
+                runSE <- mcmapply(filterAndTrimSE, dataFileSE$FILE, dataFileSE$FILTEREDFILE, dataFileSE$PE, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = T) 
         } else {
                 runSE <- NULL
         }
         
         if(nrow(dataFilePE) > 0) {
-                runPE <- mcmapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = F) }
+                runPE <- mcmapply(filterAndTrimPE, dataFilePE$FILE.x, dataFilePE$FILE.y, dataFilePE$FILTEREDFILE.x, dataFilePE$FILTEREDFILE.y, dataFilePE$PE.x, minlength = minlength, Phred = Phred, blockSize = blockSize, readerBlockSize = readerBlockSize, SIMPLIFY = F, mc.cores = mc.cores, mc.preschedule = T) }
         else{
                 runPE <- NULL
         }
