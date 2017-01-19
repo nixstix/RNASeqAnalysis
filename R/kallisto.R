@@ -52,9 +52,10 @@ kallistoIndex <- function(refTranscriptome, indexName="./transcripts.idx"){
 #' @param fragmentLength An integer. Estimated fragment length. Only required for single-end data (for paired-end data, Kallisto is able to calculate the fragment length). Default is 200 bp.
 #' @param fragmentSD A numeric. The standard deviation of the fragment length. Only required for single-end data (for paired-end data, Kallisto is able to calculate the standard deviation). Default is 10 bp. 
 #' @param refIndexFromPackage A logical, false by default. If the user would like to use an index provided by the package (these can be viewed using \code{availableReferences()}, he/she should specifiy "true" here. Otherwise, the function will assume the index is provided by the user.
+#' #' @param mc.cores The number of cores to use when parallelizing. Default is 1 (i.e. no parallelisation)
 #' @return A data frame of the estimated abundances of each transcript specified in the input file(s). The data frame is also saved to a folder, which is given the title of the files, exlcuding the extensions. The folder contains these abundances (in text format and compressed format), as well as information about the run.
 #' @export
-kallistoQuant <- function(dataFile, preFilt = FALSE, refIndex, refIndexFromPackage = FALSE, bootstrap = 0, fragmentLength = 200, fragmentSD = 10, biasCor = FALSE){
+kallistoQuant <- function(dataFile, preFilt = FALSE, refIndex, refIndexFromPackage = FALSE, bootstrap = 0, fragmentLength = 200, fragmentSD = 10, biasCor = FALSE, mc.cores = 1){
         
         dataFileSE <- dataFileSE(dataFile)
         dataFilePE <- dataFilePE(dataFile)
@@ -82,13 +83,13 @@ kallistoQuant <- function(dataFile, preFilt = FALSE, refIndex, refIndexFromPacka
                 }
                 
                 if(nrow(dataFileSE) > 0) {
-                        runSE <- mapply(kallistoQuantRunSE, cmd, preFilt = preFilt, dataFileSE$FILE, dataFileSE$FILTEREDFILE, fragmentLength, fragmentSD) 
+                        runSE <- mcmapply(kallistoQuantRunSE, cmd, preFilt = preFilt, dataFileSE$FILE, dataFileSE$FILTEREDFILE, fragmentLength, fragmentSD, mc.cores = mc.cores, mc.preschedule = FALSE) 
                 } else {
                         runSE <- NULL
                 }
  
                 if(nrow(dataFilePE) > 0) {
-                        runPE <- mapply(kallistoQuantRunPE, cmd, preFilt = preFilt, prefilt = dataFilePE$FILE.x, postfilt = dataFilePE$FILTEREDFILE.x, prefilt2 = dataFilePE$FILE.y, postfilt2 = dataFilePE$FILTEREDFILE.y) 
+                        runPE <- mcmapply(kallistoQuantRunPE, cmd, preFilt = preFilt, prefilt = dataFilePE$FILE.x, postfilt = dataFilePE$FILTEREDFILE.x, prefilt2 = dataFilePE$FILE.y, postfilt2 = dataFilePE$FILTEREDFILE.y, mc.cores = mc.cores, mc.preschedule = FALSE) 
                 } else {
                         runPE <- NULL
                 }        
