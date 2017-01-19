@@ -1,5 +1,5 @@
 #' Compares quality before and after filtering fastq files.
-#' Porvides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.
+#' Provides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.
 #' @param dataFile An R data frame with the data to be processed. The R object is a standard format, and must contain the following headings: File, PE, Sample, Replicate, FilteredFile. More information about the file is available at \code{datafileTemplate}. The \code{\link{checkDataFile}} function should be run on the file before use.
 #' @param prefiltData A FastqQA object resulting from \code{\link{runQA}}. The object contains QA data on fastq files before the filtering procedure (\code{\link{filterBadSeqs}}).
 #' @param postfiltData A FastqQA object resulting from \code{\link{runQA}}. The object contains QA data on fastq files after the filtering procedure (\code{\link{filterBadSeqs}}). 
@@ -39,7 +39,7 @@ getResults <- function(x, dataFile, data1 = dfPre, data2 = dfPost){
         data2 <- data2[data2$lane == postMatch, ]
         data2$run <- factor("Post-filtering")
         dfAll <- rbind(data1, data2)
-        dfAll$factor <- gsub("fastq.gz", "", postMatch) 
+        dfAll$factor <- gsub(".fastq.gz", "", postMatch) 
         return(dfAll)
         
 }
