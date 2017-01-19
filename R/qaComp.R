@@ -10,10 +10,10 @@
 #' @importFrom stats end median start
 #' @export
 compareQA <- function(dataFile, prefiltData, postfiltData){
-
+        
         dfPre <- prefiltData[["readQualityScore"]]
         dfPost <- postfiltData[["readQualityScore"]]
-                
+        
         lsQA <- lapply(1:nrow(dataFile), getResults, dataFile, dfPre, dfPost)
         dfQA <- do.call(rbind, lsQA)
         
@@ -25,11 +25,12 @@ compareQA <- function(dataFile, prefiltData, postfiltData){
         dev.off()
         
         return(dfQA)
-
+        
 }
 
 # private function
 getResults <- function(x, dataFile, data1 = dfPre, data2 = dfPost){
+        
         preMatch <- dataFile[x, "FILE"]
         postMatch <- dataFile[x,"FILTEREDFILE"]
         
@@ -38,7 +39,7 @@ getResults <- function(x, dataFile, data1 = dfPre, data2 = dfPost){
         data2 <- data2[data2$lane == postMatch, ]
         data2$run <- factor("Post-filtering")
         dfAll <- rbind(data1, data2)
-        dfAll$factor <- preMatch 
+        dfAll$factor <- gsub("fastq.gz", "", postMatch) 
         return(dfAll)
         
 }
