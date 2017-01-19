@@ -3,7 +3,7 @@
 \name{compareQA}
 \alias{compareQA}
 \title{Compares quality before and after filtering fastq files.
-Porvides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.}
+Provides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.}
 \usage{
 compareQA(dataFile, prefiltData, postfiltData)
 }
@@ -19,6 +19,6 @@ a datafrome containing densities and quality scores for each fastq file (both be
 }
 \description{
 Compares quality before and after filtering fastq files.
-Porvides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.
+Provides a graphic of the change in quality of fastq files, before and after running the \code{\link{filterBadSeqs}} function.
 }
 
